@@ -27,8 +27,6 @@ public class TestSuite_DevTools {
 
     private PromptEngine prompt;
 
-    private UnitConversionEngine unitConversionEngine;
-
     @Before
     public void setUp() {
         // Code to run before each test
