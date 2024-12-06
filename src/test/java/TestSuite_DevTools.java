@@ -1,5 +1,6 @@
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.PrintStream;
 import java.util.concurrent.TimeoutException;
 
@@ -20,6 +21,9 @@ public class TestSuite_DevTools {
 
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
     private final PrintStream originalOut = System.out;
+
+    private ImageToASCIIEngine img;
+    private final String imagePathToVaevLogo = "vaevlogo.jpg";
 
     @Before
     public void setUp() {
@@ -202,4 +206,20 @@ public class TestSuite_DevTools {
         System.setOut(originalOut);
     }
 
+    @Test
+    public void Test_Load_Image_Vaevlogo() {
+        img = new ImageToASCIIEngine(imagePathToVaevLogo);
+        assertTrue(img != null);
+    }
+
+    @Test
+    public void Test_Output_File_Exists() {
+        img = new ImageToASCIIEngine(imagePathToVaevLogo);
+        img.convertToASCIIInFile("vaevlogo.txt");
+        assertTrue(img.getOutputPath().exists());
+        File outputFile = img.getOutputPath();
+        if (outputFile != null) {
+            outputFile.delete();
+        }
+    }
 }

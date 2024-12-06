@@ -2,7 +2,7 @@
 /**
  * @author Caden Finley
  */
-public class Engine {
+public abstract class Engine {
 
     public static boolean TESTING = false;
     private static String USER_API_KEY = "sk-z3q9L-Lh39YYmooGmbPNAFlsaDywlFdRB-O1vFB4mYT3BlbkFJSSn6Um-zBw4r7fUB2H6dX3fhiOisNo8PFzy-fdKXwA";
