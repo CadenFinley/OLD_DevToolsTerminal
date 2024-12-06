@@ -24,50 +24,34 @@ import java.util.concurrent.TimeoutException;
  */
 public class PromptEngine {
 
-    private String USER_API_KEY;
-    private boolean aiGenerationEnabled = true;
-    private int promptLength = 30;
-    private String prompt = null;
+    private String USER_API_KEY = null;
+    private boolean aiGenerationEnabled = false;
+    private int promptLength = 0;
+
+    /**
+     * Constructs a PromptEngine object with the specified API key.
+     *
+     * @param apiKey The `PromptEngine` constructor takes an API key as a
+     * parameter and initializes the `USER_API_KEY` variable with the provided
+     * key.
+     */
+    public PromptEngine(String apiKey, boolean aiEnabled, int promptLength) {
+        this.USER_API_KEY = apiKey;
+        this.promptLength = promptLength;
+        this.aiGenerationEnabled = aiEnabled;
+        if (aiGenerationEnabled && !testAPIKey(USER_API_KEY)) {
+            aiGenerationEnabled = false;
+        }
+    }
 
     /**
      * The function `buildPrompt` generates a prompt for the OpenAI API
      */
-    public void buildPrompt() {
-        if (aiGenerationEnabled || prompt == null || prompt.isEmpty()) {
-            try {
-                prompt = chatGPT(buildMessage()) + "\n";
-            } catch (TimeoutException e) {
-                TextEngine.printNoDelay("AI Generation is now disabled. Re-enable it in settings.", false);
-                aiGenerationEnabled = false;
-                TextEngine.enterToNext();
-            }
-        }
-    }
-
-    private static String buildMessage() {
-        return "This is a test message to verify connection to the OpenAI API servers.";
-    }
-
-    /**
-     * The function `returnPrompt` checks if AI generation is enabled,
-     * highlights keywords in the prompt, and returns the modified prompt or a
-     * message if AI generation is disabled.
-     *
-     * @return The method `returnPrompt()` returns the generated prompt with
-     * highlighted keywords if AI generation is enabled. If AI generation is
-     * disabled, it returns the message "AI generation is disabled. Please
-     * enable it in settings."
-     */
-    public String returnPrompt() {
+    public String buildPrompt(String message) {
         if (aiGenerationEnabled) {
-            if (prompt == null || prompt.isEmpty()) {
-                buildPrompt();
-            }
-
-            // Highlight keywords
-            return prompt;
+            return chatGPT(message) + "\n";
         }
-        return "AI generation is disabled. Please enable it in settings.";
+        return "AI generation is disabled. You can enable it in settings.\n";
     }
 
     /**
@@ -82,7 +66,7 @@ public class PromptEngine {
      * response from the OpenAI API after processing the input message through
      * the GPT-3.5 model.
      */
-    private String chatGPT(String message) throws TimeoutException {
+    private String chatGPT(String message) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<String> future = executor.submit(() -> {
             String url = "https://api.openai.com/v1/chat/completions";
@@ -128,7 +112,9 @@ public class PromptEngine {
             aiGenerationEnabled = false;
             return null;
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
+            TextEngine.printNoDelay("An error occurred while processing the request.", false);
+            aiGenerationEnabled = false;
+            return null;
         } finally {
             executor.shutdown();
         }
@@ -165,7 +151,7 @@ public class PromptEngine {
      * issue) or the response does not contain the expected content, it returns
      * `false`.
      */
-    public static boolean testAPIKey(String apiKey) throws TimeoutException {
+    public static boolean testAPIKey(String apiKey) {
         Callable<Boolean> task = () -> {
             String testMessage = "This is a test message to check if the API key is valid.";
             try {
@@ -249,6 +235,9 @@ public class PromptEngine {
      */
     public void setAIEnabled(boolean enabled) {
         this.aiGenerationEnabled = enabled;
+        if (enabled && !testAPIKey(USER_API_KEY)) {
+            aiGenerationEnabled = false;
+        }
     }
 
     /**
@@ -270,6 +259,9 @@ public class PromptEngine {
      */
     public void setAPIKey(String apiKey) {
         this.USER_API_KEY = apiKey;
+        if (aiGenerationEnabled && !testAPIKey(USER_API_KEY)) {
+            aiGenerationEnabled = false;
+        }
     }
 
     /**

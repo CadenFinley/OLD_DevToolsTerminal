@@ -121,11 +121,11 @@ public class TestSuite_DevTools {
 
     @Test
     public void testPromptEngineReceiveInput() {
-        PromptEngine prompt = new PromptEngine();
+        PromptEngine prompt = new PromptEngine(Engine.getUSER_API_KEY(), true, 30);
         prompt.setAIEnabled(true);
         prompt.setAPIKey(Engine.getUSER_API_KEY());
-        prompt.buildPrompt();
-        assertTrue(prompt.returnPrompt() != null && !"AI generation is disabled. Please enable it in settings.".equals(prompt.returnPrompt()));
+        String message = "This is a test message to verify connection to OPENAI API.";
+        assertTrue(prompt.buildPrompt(message) != null && !"AI generation is disabled. Please enable it in settings.".equals(prompt.buildPrompt(message)));
     }
 
     @Test
