@@ -24,15 +24,15 @@ import java.util.concurrent.TimeoutException;
  */
 public class PromptEngine {
 
-    public static final String USER_API_KEY = "sk-z3q9L-Lh39YYmooGmbPNAFlsaDywlFdRB-O1vFB4mYT3BlbkFJSSn6Um-zBw4r7fUB2H6dX3fhiOisNo8PFzy-fdKXwA";
-    public static boolean aiGenerationEnabled = true;
-    public static int promptLength = 30;
-    private static String prompt = null;
+    private String USER_API_KEY;
+    private boolean aiGenerationEnabled = true;
+    private int promptLength = 30;
+    private String prompt = null;
 
     /**
-     *
+     * The function `buildPrompt` generates a prompt for the OpenAI API
      */
-    public static void buildPrompt() {
+    public void buildPrompt() {
         if (aiGenerationEnabled || prompt == null || prompt.isEmpty()) {
             try {
                 prompt = chatGPT(buildMessage()) + "\n";
@@ -41,12 +41,11 @@ public class PromptEngine {
                 aiGenerationEnabled = false;
                 TextEngine.enterToNext();
             }
-            TextEngine.clearScreen();
         }
     }
 
     private static String buildMessage() {
-        return " ";
+        return "This is a test message to verify connection to the OpenAI API servers.";
     }
 
     /**
@@ -59,7 +58,7 @@ public class PromptEngine {
      * disabled, it returns the message "AI generation is disabled. Please
      * enable it in settings."
      */
-    public static String returnPrompt() {
+    public String returnPrompt() {
         if (aiGenerationEnabled) {
             if (prompt == null || prompt.isEmpty()) {
                 buildPrompt();
@@ -83,7 +82,7 @@ public class PromptEngine {
      * response from the OpenAI API after processing the input message through
      * the GPT-3.5 model.
      */
-    private static String chatGPT(String message) throws TimeoutException {
+    private String chatGPT(String message) throws TimeoutException {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<String> future = executor.submit(() -> {
             String url = "https://api.openai.com/v1/chat/completions";
@@ -193,11 +192,9 @@ public class PromptEngine {
                 }
                 // Check if the response contains the expected content
                 String responseContent = extractContentFromResponse(response.toString());
-                aiGenerationEnabled = responseContent != null && !responseContent.isEmpty();
                 return responseContent != null && !responseContent.isEmpty();
             } catch (IOException e) {
                 TextEngine.printNoDelay("API Key failed. Please check your internet connection", false);
-                aiGenerationEnabled = false;
                 return false;
             }
         };
@@ -207,12 +204,10 @@ public class PromptEngine {
             return future.get(10, TimeUnit.SECONDS); // Set timeout to 10 seconds
         } catch (TimeoutException e) {
             future.cancel(true);
-            aiGenerationEnabled = false;
             TextEngine.printNoDelay("API Key validation timed out. AI generation is disabled, re-enable it in settings.", false);
             TextEngine.enterToNext();
             return false;
         } catch (InterruptedException | ExecutionException e) {
-            aiGenerationEnabled = false;
             TextEngine.printNoDelay("API Key failed. AI generation is disabled, re-enable it in settings.", false);
             TextEngine.enterToNext();
             return false;
@@ -225,21 +220,65 @@ public class PromptEngine {
      * The function `setPromptLength` sets the length of a prompt based on the
      * input string "short", "medium", or "long".
      *
-     * @param length The `length` parameter in the `setPromptLength` method is a
-     * String that specifies the desired length of the prompt. It can have three
-     * possible values: "short", "medium", or "long". The method sets the
-     * `promptLength` variable based on the value of the `length`
+     * @param lengthCharacters The `length` parameter in the `setPromptLength`
+     * method is a String that specifies the desired length of the prompt. It
+     * can have three possible values: "short", "medium", or "long". The method
+     * sets the `promptLength` variable based on the value of the `length`
      */
-    public static void setPromptLength(String length) {
-        promptLength = switch (length) {
-            case "short" ->
-                30;
-            case "medium" ->
-                50;
-            case "long" ->
-                75;
-            default ->
-                30;
-        };
+    public void setPromptLength(int lengthCharacters) {
+        this.promptLength = lengthCharacters;
+    }
+
+    /**
+     * The function `getPromptLength` returns the length of the prompt.
+     *
+     * @return The `getPromptLength` method returns the length of the prompt as
+     * an integer value.
+     */
+    public int getPromptLength() {
+        return promptLength;
+    }
+
+    /**
+     * The function `setAIEnabled` enables or disables AI generation.
+     *
+     * @param enabled The `setAIEnabled` method takes a boolean parameter
+     * `enabled` that specifies whether AI generation should be enabled or
+     * disabled. If `enabled` is `true`, AI generation is enabled; if `enabled`
+     * is `false`, AI generation is disabled.
+     */
+    public void setAIEnabled(boolean enabled) {
+        this.aiGenerationEnabled = enabled;
+    }
+
+    /**
+     * The function `isAIEnabled` checks if AI generation is enabled.
+     *
+     * @return The `isAIEnabled` method returns a boolean value indicating
+     * whether AI generation is enabled. If AI generation is enabled, the method
+     * returns `true`; otherwise, it returns `false`.
+     */
+    public boolean isAIEnabled() {
+        return aiGenerationEnabled;
+    }
+
+    /**
+     * The function `setAPIKey` sets the user's API key for the OpenAI API.
+     *
+     * @param apiKey The `
+     *
+     */
+    public void setAPIKey(String apiKey) {
+        this.USER_API_KEY = apiKey;
+    }
+
+    /**
+     * The function `getAPIKey` returns the user's API key for the OpenAI API.
+     *
+     * @return The `getAPIKey` method returns the user's API key for the OpenAI
+     * API as a String.
+     */
+    public String getAPIKey() {
+        return USER_API_KEY;
     }
 }
