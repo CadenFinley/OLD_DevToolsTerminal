@@ -1,4 +1,6 @@
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.After;
@@ -16,16 +18,21 @@ public class TestSuite_DevTools {
     private ClockEngine timer;
     private ClockEngine stopwatch;
 
+    private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+    private final PrintStream originalOut = System.out;
+
     @Before
     public void setUp() {
         // Code to run before each test
         timer = null;
         stopwatch = null;
+        Engine.TESTING = true;
     }
 
     @After
     public void tearDown() {
         // Code to run after each test
+        Engine.TESTING = false;
     }
 
     @Test
@@ -115,6 +122,84 @@ public class TestSuite_DevTools {
         prompt.setAPIKey(Engine.getUSER_API_KEY());
         prompt.buildPrompt();
         assertTrue(prompt.returnPrompt() != null && !"AI generation is disabled. Please enable it in settings.".equals(prompt.returnPrompt()));
+    }
+
+    @Test
+    public void testCheckValidInput() {
+        System.setOut(new PrintStream(outContent));
+        assertTrue(TextEngine.checkValidInput("command"));
+        assertFalse(TextEngine.checkValidInput(""));
+        assertFalse(TextEngine.checkValidInput(null));
+        System.setOut(originalOut);
+    }
+
+    @Test
+    public void testParseCommand() {
+        System.setOut(new PrintStream(outContent));
+        String[] possibleCommands = {"look", "take", "open"};
+        assertEquals("look", TextEngine.parseCommand("look", possibleCommands));
+        assertEquals("take", TextEngine.parseCommand("take", possibleCommands));
+        assertEquals("open", TextEngine.parseCommand("open", possibleCommands));
+        assertEquals("unknown", TextEngine.parseCommand("unknown", possibleCommands));
+        System.setOut(originalOut);
+    }
+
+    @Test
+    public void testGetMatchLength() {
+        System.setOut(new PrintStream(outContent));
+        assertEquals(3, TextEngine.getMatchLength("look", "loo"));
+        assertEquals(0, TextEngine.getMatchLength("look", "take"));
+        System.setOut(originalOut);
+    }
+
+    @Test
+    public void testHas() {
+        System.setOut(new PrintStream(outContent));
+        String[] possibleCommands = {"look", "take", "open"};
+        assertTrue(TextEngine.has(possibleCommands, "look"));
+        assertFalse(TextEngine.has(possibleCommands, "unknown"));
+        System.setOut(originalOut);
+    }
+
+    @Test
+    public void testParseCommand0() {
+        System.setOut(new PrintStream(outContent));
+        String[] possibleCommands = {"look", "take", "open"};
+        assertEquals("look", TextEngine.parseCommand("look", possibleCommands));
+        assertEquals("take", TextEngine.parseCommand("take", possibleCommands));
+        assertEquals("open", TextEngine.parseCommand("open", possibleCommands));
+        assertEquals("unknown", TextEngine.parseCommand("unknown", possibleCommands));
+        assertEquals("look", TextEngine.parseCommand("LOOK", possibleCommands)); // Case sensitivity test
+        assertEquals("look", TextEngine.parseCommand("lo", possibleCommands)); // Partial match test
+        assertEquals("", TextEngine.parseCommand("", possibleCommands)); // Empty string test
+        System.setOut(originalOut);
+    }
+
+    @Test
+    public void testGetMatchLength0() {
+        System.setOut(new PrintStream(outContent));
+        assertEquals(3, TextEngine.getMatchLength("look", "loo"));
+        assertEquals(0, TextEngine.getMatchLength("look", "take"));
+        assertEquals(4, TextEngine.getMatchLength("look", "look"));
+        assertEquals(0, TextEngine.getMatchLength("look", ""));
+        assertEquals(0, TextEngine.getMatchLength("", "look"));
+        assertEquals(0, TextEngine.getMatchLength("look", null));
+        assertEquals(0, TextEngine.getMatchLength(null, "look"));
+        System.setOut(originalOut);
+    }
+
+    @Test
+    public void testHas0() {
+        System.setOut(new PrintStream(outContent));
+        String[] possibleCommands = {"look", "take", "open"};
+        assertTrue(TextEngine.has(possibleCommands, "look"));
+        assertFalse(TextEngine.has(possibleCommands, "unknown"));
+        assertTrue(TextEngine.has(possibleCommands, "take"));
+        assertTrue(TextEngine.has(possibleCommands, "open"));
+        assertFalse(TextEngine.has(possibleCommands, "LOOK")); // Case sensitivity test
+        assertFalse(TextEngine.has(possibleCommands, "")); // Empty string test
+        assertFalse(TextEngine.has(possibleCommands, null)); // Null test
+        System.setOut(originalOut);
     }
 
 }
