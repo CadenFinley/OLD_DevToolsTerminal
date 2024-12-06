@@ -25,7 +25,7 @@ public class TestSuite_DevTools {
     private ImageToASCIIEngine img;
     private final String imagePathToVaevLogo = "vaevlogo.jpg";
 
-    private PromptEngine prompt;
+    private OpenAIPromptEngine prompt;
 
     @Before
     public void setUp() {
@@ -119,26 +119,26 @@ public class TestSuite_DevTools {
 
     @Test
     public void testOPENAICONNECTION() throws TimeoutException {
-        assertTrue(PromptEngine.testAPIKey(Engine.getUSER_API_KEY()));
+        assertTrue(OpenAIPromptEngine.testAPIKey(Engine.getOpenAI_API_KEY()));
     }
 
     @Test
     public void testPromptEngineReceiveInput() {
-        prompt = new PromptEngine(Engine.getUSER_API_KEY(), true, 30);
+        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), true, 30);
         String message = "This is a test message to verify connection to OPENAI API.";
         assertTrue(prompt.buildPromptAndReturnResponce(message) != null && !"AI generation is disabled. You can enable it in settings.\n".equals(prompt.buildPromptAndReturnResponce(message)));
     }
 
     @Test
     public void testPromptEngineReceiveInput0() {
-        prompt = new PromptEngine(Engine.getUSER_API_KEY(), false, 30);
+        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), false, 30);
         String message = "This is a test message to verify connection to OPENAI API.";
         assertEquals("AI generation is disabled. You can enable it in settings.\n", prompt.buildPromptAndReturnResponce(message));
     }
 
     @Test
     public void testPromptCachedMessage() {
-        prompt = new PromptEngine(Engine.getUSER_API_KEY(), true, 30);
+        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), true, 30);
         String message = "This is a test message to verify connection to OPENAI API.";
         prompt.buildPromptAndReturnNoResponce(message);
         assertEquals(message, prompt.getLastPromptUsed());
@@ -146,7 +146,7 @@ public class TestSuite_DevTools {
 
     @Test
     public void testPromptCachedMessage0() {
-        prompt = new PromptEngine(Engine.getUSER_API_KEY(), false, 30);
+        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), false, 30);
         String message = "This is a test message to verify connection to OPENAI API.";
         prompt.buildPromptAndReturnNoResponce(message);
         assertEquals("", prompt.getLastPromptUsed());
@@ -154,7 +154,7 @@ public class TestSuite_DevTools {
 
     @Test
     public void testPromptEngineReceiveInput1() {
-        prompt = new PromptEngine(Engine.getUSER_API_KEY(), true, 30);
+        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), true, 30);
         String message = "This is a test message to verify connection to OPENAI API.";
         String received = prompt.buildPromptAndReturnResponce(message);
         assertTrue(received != null && !received.equals("") && !received.equals("AI generation is disabled. You can enable it in settings.\n"));
@@ -288,5 +288,13 @@ public class TestSuite_DevTools {
         assertEquals(1.60934, UnitConversionEngine.convertUnit(1, "miles per hour", "kilometers per hour", "speed"), 0.00001);
         assertEquals(0.44704, UnitConversionEngine.convertUnit(1, "miles per hour", "meters per second", "speed"), 0.00001);
         assertEquals(0.868976, UnitConversionEngine.convertUnit(1, "miles per hour", "knots", "speed"), 0.00001);
+    }
+
+    @Test
+    public void testWeatherAPI() {
+        WeatherAPIPromptEngine weather = new WeatherAPIPromptEngine();
+        String response = weather.buildPromptAndReturnResponce();
+        System.out.println(response);
+        assertTrue(response != null && !response.equals(""));
     }
 }

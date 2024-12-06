@@ -22,7 +22,7 @@ import java.util.concurrent.TimeoutException;
  * @author Caden Finley
  * @version 1.0
  */
-public class PromptEngine {
+public class OpenAIPromptEngine {
 
     private String USER_API_KEY = null;
     private boolean aiGenerationEnabled = false;
@@ -37,7 +37,7 @@ public class PromptEngine {
      * parameter and initializes the `USER_API_KEY` variable with the provided
      * key.
      */
-    public PromptEngine(String apiKey, boolean aiEnabled, int promptLength) {
+    public OpenAIPromptEngine(String apiKey, boolean aiEnabled, int promptLength) {
         this.USER_API_KEY = apiKey;
         this.promptLength = promptLength;
         this.aiGenerationEnabled = aiEnabled;
