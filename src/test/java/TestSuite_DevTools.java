@@ -25,9 +25,14 @@ public class TestSuite_DevTools {
     private ImageToASCIIEngine img;
     private final String imagePathToVaevLogo = "vaevlogo.jpg";
 
+    private PromptEngine prompt;
+
+    private UnitConversionEngine unitConversionEngine;
+
     @Before
     public void setUp() {
         // Code to run before each test
+        prompt = null;
         timer = null;
         stopwatch = null;
         Engine.TESTING = true;
@@ -121,11 +126,40 @@ public class TestSuite_DevTools {
 
     @Test
     public void testPromptEngineReceiveInput() {
-        PromptEngine prompt = new PromptEngine(Engine.getUSER_API_KEY(), true, 30);
-        prompt.setAIEnabled(true);
-        prompt.setAPIKey(Engine.getUSER_API_KEY());
+        prompt = new PromptEngine(Engine.getUSER_API_KEY(), true, 30);
         String message = "This is a test message to verify connection to OPENAI API.";
-        assertTrue(prompt.buildPrompt(message) != null && !"AI generation is disabled. Please enable it in settings.".equals(prompt.buildPrompt(message)));
+        assertTrue(prompt.buildPromptAndReturnResponce(message) != null && !"AI generation is disabled. You can enable it in settings.\n".equals(prompt.buildPromptAndReturnResponce(message)));
+    }
+
+    @Test
+    public void testPromptEngineReceiveInput0() {
+        prompt = new PromptEngine(Engine.getUSER_API_KEY(), false, 30);
+        String message = "This is a test message to verify connection to OPENAI API.";
+        assertEquals("AI generation is disabled. You can enable it in settings.\n", prompt.buildPromptAndReturnResponce(message));
+    }
+
+    @Test
+    public void testPromptCachedMessage() {
+        prompt = new PromptEngine(Engine.getUSER_API_KEY(), true, 30);
+        String message = "This is a test message to verify connection to OPENAI API.";
+        prompt.buildPromptAndReturnNoResponce(message);
+        assertEquals(message, prompt.getLastPromptUsed());
+    }
+
+    @Test
+    public void testPromptCachedMessage0() {
+        prompt = new PromptEngine(Engine.getUSER_API_KEY(), false, 30);
+        String message = "This is a test message to verify connection to OPENAI API.";
+        prompt.buildPromptAndReturnNoResponce(message);
+        assertEquals("", prompt.getLastPromptUsed());
+    }
+
+    @Test
+    public void testPromptEngineReceiveInput1() {
+        prompt = new PromptEngine(Engine.getUSER_API_KEY(), true, 30);
+        String message = "This is a test message to verify connection to OPENAI API.";
+        String received = prompt.buildPromptAndReturnResponce(message);
+        assertTrue(received != null && !received.equals("") && !received.equals("AI generation is disabled. You can enable it in settings.\n"));
     }
 
     @Test
@@ -221,5 +255,40 @@ public class TestSuite_DevTools {
         if (outputFile != null) {
             outputFile.delete();
         }
+    }
+
+    @Test
+    public void testConvertDistance() {
+        assertEquals(1.60934, UnitConversionEngine.convertUnit(1, "miles", "kilometers", "distance"), 0.00001);
+        assertEquals(5280, UnitConversionEngine.convertUnit(1, "miles", "feet", "distance"), 0.00001);
+        assertEquals(0.621371, UnitConversionEngine.convertUnit(1, "kilometers", "miles", "distance"), 0.00001);
+    }
+
+    @Test
+    public void testConvertTemperature() {
+        assertEquals(0, UnitConversionEngine.convertUnit(32, "fahrenheit", "celsius", "temperature"), 0.00001);
+        assertEquals(273.15, UnitConversionEngine.convertUnit(0, "celsius", "kelvin", "temperature"), 0.00001);
+        assertEquals(32, UnitConversionEngine.convertUnit(0, "celsius", "fahrenheit", "temperature"), 0.00001);
+    }
+
+    @Test
+    public void testConvertWeight() {
+        assertEquals(2.20462, UnitConversionEngine.convertUnit(1, "kilograms", "pounds", "weight"), 0.00001);
+        assertEquals(1000, UnitConversionEngine.convertUnit(1, "kilograms", "grams", "weight"), 0.00001);
+        assertEquals(0.453592, UnitConversionEngine.convertUnit(1, "pounds", "kilograms", "weight"), 0.00001);
+    }
+
+    @Test
+    public void testConvertVolume() {
+        assertEquals(3.78541, UnitConversionEngine.convertUnit(1, "gallons", "liters", "volume"), 0.00001);
+        assertEquals(0.264172, UnitConversionEngine.convertUnit(1, "liters", "gallons", "volume"), 0.00001);
+        assertEquals(4, UnitConversionEngine.convertUnit(1, "quarts", "cups", "volume"), 0.00001);
+    }
+
+    @Test
+    public void testConvertSpeed() {
+        assertEquals(1.60934, UnitConversionEngine.convertUnit(1, "miles per hour", "kilometers per hour", "speed"), 0.00001);
+        assertEquals(0.44704, UnitConversionEngine.convertUnit(1, "miles per hour", "meters per second", "speed"), 0.00001);
+        assertEquals(0.868976, UnitConversionEngine.convertUnit(1, "miles per hour", "knots", "speed"), 0.00001);
     }
 }

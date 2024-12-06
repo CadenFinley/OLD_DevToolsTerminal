@@ -27,6 +27,8 @@ public class PromptEngine {
     private String USER_API_KEY = null;
     private boolean aiGenerationEnabled = false;
     private int promptLength = 0;
+    private String lastPromptUsed = "";
+    private String lastResponseReceived = "";
 
     /**
      * Constructs a PromptEngine object with the specified API key.
@@ -45,13 +47,32 @@ public class PromptEngine {
     }
 
     /**
-     * The function `buildPrompt` generates a prompt for the OpenAI API
+     * The function `buildAndReturnPrompt` generates a prompt for the OpenAI API
+     *
+     * @param message
      */
-    public String buildPrompt(String message) {
+    public String buildPromptAndReturnResponce(String message) {
         if (aiGenerationEnabled) {
-            return chatGPT(message) + "\n";
+            lastPromptUsed = message;
+            lastResponseReceived = chatGPT(message);
+            return lastResponseReceived;
         }
         return "AI generation is disabled. You can enable it in settings.\n";
+    }
+
+    /**
+     * The function `buildPromptAndReturnNoResponce` generates a prompt for the
+     * OpenAI API without returning a response.
+     *
+     * @param message
+     */
+    public void buildPromptAndReturnNoResponce(String message) {
+        if (aiGenerationEnabled) {
+            lastPromptUsed = message;
+            lastResponseReceived = chatGPT(message);
+            return;
+        }
+        System.out.println("AI generation is disabled. You can enable it in settings.\n");
     }
 
     /**
@@ -272,5 +293,26 @@ public class PromptEngine {
      */
     public String getAPIKey() {
         return USER_API_KEY;
+    }
+
+    /**
+     * The function `getLastPromptUsed` returns the last prompt used.
+     *
+     * @return The `getLastPromptUsed` method returns the last prompt used as a
+     * String.
+     */
+    public String getLastPromptUsed() {
+        return lastPromptUsed;
+    }
+
+    /**
+     * The function `getLastResponseReceived` returns the last response
+     * received.
+     *
+     * @return The `getLastResponseReceived` method returns the last response
+     * received as a String.
+     */
+    public String getLastResponseReceived() {
+        return lastResponseReceived;
     }
 }
