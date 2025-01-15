@@ -21,6 +21,7 @@ public abstract class TextEngine {
     public final static Console console = System.console();
     public static String yellowColor = "\033[1;33m";
     public static String resetColor = "\033[0m";
+    public static String greenColor = "\033[0;32m";
 
     public static int MAX_LINE_WIDTH = 30; // Define the maximum line width
 
@@ -130,6 +131,7 @@ public abstract class TextEngine {
         }
         if (buffer) {
             console.readLine();
+            System.out.print(greenColor + "> " + resetColor);
         }
     }
 
@@ -178,6 +180,7 @@ public abstract class TextEngine {
         }
         if (buffer) {
             console.readLine();
+            System.out.print(greenColor + "> " + resetColor);
         }
     }
 

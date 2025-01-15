@@ -25,7 +25,6 @@ public class OpenAIPromptEngine {
 
     private String USER_API_KEY = null;
     private boolean aiGenerationEnabled = false;
-    private int promptLength = 0;
     private String lastPromptUsed = "";
     private String lastResponseReceived = "";
 
@@ -36,9 +35,8 @@ public class OpenAIPromptEngine {
      * parameter and initializes the `USER_API_KEY` variable with the provided
      * key.
      */
-    public OpenAIPromptEngine(String apiKey, boolean aiEnabled, int promptLength) {
+    public OpenAIPromptEngine(String apiKey, boolean aiEnabled) {
         this.USER_API_KEY = apiKey;
-        this.promptLength = promptLength;
         this.aiGenerationEnabled = aiEnabled;
         if (aiGenerationEnabled && !testAPIKey(USER_API_KEY)) {
             aiGenerationEnabled = false;
@@ -220,29 +218,6 @@ public class OpenAIPromptEngine {
         } finally {
             executor.shutdown();
         }
-    }
-
-    /**
-     * The function `setPromptLength` sets the length of a prompt based on the
-     * input string "short", "medium", or "long".
-     *
-     * @param lengthCharacters The `length` parameter in the `setPromptLength`
-     * method is a String that specifies the desired length of the prompt. It
-     * can have three possible values: "short", "medium", or "long". The method
-     * sets the `promptLength` variable based on the value of the `length`
-     */
-    public void setPromptLength(int lengthCharacters) {
-        this.promptLength = lengthCharacters;
-    }
-
-    /**
-     * The function `getPromptLength` returns the length of the prompt.
-     *
-     * @return The `getPromptLength` method returns the length of the prompt as
-     * an integer value.
-     */
-    public int getPromptLength() {
-        return promptLength;
     }
 
     /**

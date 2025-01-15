@@ -2,7 +2,7 @@
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
-import java.util.concurrent.TimeoutException;
+import java.util.Map;
 
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
@@ -118,27 +118,27 @@ public class TestSuite_DevTools {
     }
 
     @Test
-    public void testOPENAICONNECTION() throws TimeoutException {
+    public void testOPENAICONNECTION() {
         assertTrue(OpenAIPromptEngine.testAPIKey(Engine.getOpenAI_API_KEY()));
     }
 
     @Test
     public void testPromptEngineReceiveInput() {
-        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), true, 30);
+        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), true);
         String message = "This is a test message to verify connection to OPENAI API.";
         assertTrue(prompt.buildPromptAndReturnResponce(message) != null && !"AI generation is disabled. You can enable it in settings.\n".equals(prompt.buildPromptAndReturnResponce(message)));
     }
 
     @Test
     public void testPromptEngineReceiveInput0() {
-        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), false, 30);
+        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), false);
         String message = "This is a test message to verify connection to OPENAI API.";
         assertEquals("AI generation is disabled. You can enable it in settings.\n", prompt.buildPromptAndReturnResponce(message));
     }
 
     @Test
     public void testPromptCachedMessage() {
-        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), true, 30);
+        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), true);
         String message = "This is a test message to verify connection to OPENAI API.";
         prompt.buildPromptAndReturnNoResponce(message);
         assertEquals(message, prompt.getLastPromptUsed());
@@ -146,7 +146,7 @@ public class TestSuite_DevTools {
 
     @Test
     public void testPromptCachedMessage0() {
-        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), false, 30);
+        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), false);
         String message = "This is a test message to verify connection to OPENAI API.";
         prompt.buildPromptAndReturnNoResponce(message);
         assertEquals("", prompt.getLastPromptUsed());
@@ -154,7 +154,7 @@ public class TestSuite_DevTools {
 
     @Test
     public void testPromptEngineReceiveInput1() {
-        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), true, 30);
+        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), true);
         String message = "This is a test message to verify connection to OPENAI API.";
         String received = prompt.buildPromptAndReturnResponce(message);
         assertTrue(received != null && !received.equals("") && !received.equals("AI generation is disabled. You can enable it in settings.\n"));
@@ -293,8 +293,18 @@ public class TestSuite_DevTools {
     @Test
     public void testWeatherAPI() {
         WeatherAPIPromptEngine weather = new WeatherAPIPromptEngine();
-        String response = weather.buildPromptAndReturnResponce();
+        Object response = weather.getWeatherDataPart("temperature");
         System.out.println(response);
         assertTrue(response != null && !response.equals(""));
+    }
+
+    @Test
+    public void testExtractWeatherData() {
+        String jsonResponse = "{ \"timelines\": { \"minutely\": [ { \"time\": \"2025-01-15T15:09:00Z\", \"values\": { \"cloudBase\": null, \"cloudCeiling\": null, \"cloudCover\": 1, \"dewPoint\": -15.38, \"freezingRainIntensity\": 0, \"hailProbability\": 11.6, \"hailSize\": 3.46, \"humidity\": 39, \"precipitationProbability\": 0, \"pressureSurfaceLevel\": 1013.63, \"rainIntensity\": 0, \"sleetIntensity\": 0, \"snowIntensity\": 0, \"temperature\": -3.38, \"temperatureApparent\": -10.27, \"uvHealthConcern\": 0, \"uvIndex\": 1, \"visibility\": 16, \"weatherCode\": 1000, \"windDirection\": 315.19, \"windGust\": 11.63, \"windSpeed\": 7 } } ] } } }";
+        WeatherAPIPromptEngine weatherEngine = new WeatherAPIPromptEngine();
+        Map<String, Object> extractedData = weatherEngine.extractWeatherData(jsonResponse);
+        assertEquals(-15.38, extractedData.get("dewPoint"));
+        assertEquals(1.0, extractedData.get("cloudCover"));
+        assertEquals(39, extractedData.get("humidity"));
     }
 }
