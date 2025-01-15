@@ -35,7 +35,7 @@ public class OpenAIPromptEngine {
      * parameter and initializes the `USER_API_KEY` variable with the provided
      * key.
      */
-    public OpenAIPromptEngine(String apiKey, boolean aiEnabled) {
+    public OpenAIPromptEngine(String apiKey, boolean aiEnabled) throws TimeoutException {
         this.USER_API_KEY = apiKey;
         this.aiGenerationEnabled = aiEnabled;
         if (aiGenerationEnabled && !testAPIKey(USER_API_KEY)) {
@@ -169,7 +169,7 @@ public class OpenAIPromptEngine {
      * issue) or the response does not contain the expected content, it returns
      * `false`.
      */
-    public static boolean testAPIKey(String apiKey) {
+    public static boolean testAPIKey(String apiKey) throws TimeoutException {
         Callable<Boolean> task = () -> {
             String testMessage = "This is a test message to check if the API key is valid.";
             try {
@@ -202,6 +202,7 @@ public class OpenAIPromptEngine {
                 return false;
             }
         };
+
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
         Future<Boolean> future = executor.submit(task);
         try {
@@ -227,8 +228,9 @@ public class OpenAIPromptEngine {
      * `enabled` that specifies whether AI generation should be enabled or
      * disabled. If `enabled` is `true`, AI generation is enabled; if `enabled`
      * is `false`, AI generation is disabled.
+     * @throws TimeoutException
      */
-    public void setAIEnabled(boolean enabled) {
+    public void setAIEnabled(boolean enabled) throws TimeoutException {
         this.aiGenerationEnabled = enabled;
         if (enabled && !testAPIKey(USER_API_KEY)) {
             aiGenerationEnabled = false;
@@ -250,9 +252,10 @@ public class OpenAIPromptEngine {
      * The function `setAPIKey` sets the user's API key for the OpenAI API.
      *
      * @param apiKey The `
+     * @throws TimeoutException
      *
      */
-    public void setAPIKey(String apiKey) {
+    public void setAPIKey(String apiKey) throws TimeoutException {
         this.USER_API_KEY = apiKey;
         if (aiGenerationEnabled && !testAPIKey(USER_API_KEY)) {
             aiGenerationEnabled = false;

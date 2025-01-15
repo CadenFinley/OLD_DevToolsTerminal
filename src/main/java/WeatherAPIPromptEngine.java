@@ -1,6 +1,5 @@
 
 import java.io.BufferedReader;
-import java.io.Console;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -27,11 +26,10 @@ import org.json.JSONObject;
  */
 public final class WeatherAPIPromptEngine {
 
-    private static final Console console = System.console();
     private String latitude = "40.712776";
     private String longitude = "-74.005974";
-    private String URL_TO_TOMORROW_IO = "https://api.tomorrow.io/v4/weather/forecast?location=" + latitude + "," + longitude + "&apikey=lJJSlWZaiv9LeL1iS35I7QnuMQkPMOya";
     private Map<String, Object> weatherData;
+    private Object timeDataLastGathered;
 
     public WeatherAPIPromptEngine() {
         recallWeather();
@@ -39,33 +37,6 @@ public final class WeatherAPIPromptEngine {
 
     public void recallWeather() {
         weatherAPI();
-    }
-
-    public void setLocation() throws InterruptedException {
-        String bufferLatitude;
-        String bufferLongitude;
-        while (true) {
-            TextEngine.printWithDelays("Please enter your latitude.", true);
-            bufferLatitude = console.readLine();
-            TextEngine.printWithDelays("Please enter your longitude.", true);
-            bufferLongitude = console.readLine();
-            if (latitude == null || longitude == null) {
-                TextEngine.printWithDelays("Invalid input. Please try again.", true);
-            }
-            if (latitude.isEmpty() || longitude.isEmpty()) {
-                TextEngine.printWithDelays("Invalid input. Please try again.", true);
-            }
-            try {
-                Float.valueOf(bufferLatitude);
-                Float.valueOf(bufferLongitude);
-                break;
-            } catch (NumberFormatException e) {
-                TextEngine.printWithDelays("Invalid input. Please try again.", true);
-            }
-        }
-        this.latitude = bufferLatitude;
-        this.longitude = bufferLongitude;
-        this.URL_TO_TOMORROW_IO = "https://api.tomorrow.io/v4/weather/forecast?location=" + latitude + "," + longitude + "&apikey=lJJSlWZaiv9LeL1iS35I7QnuMQkPMOya";
     }
 
     public Map<String, Object> getWeatherData() {
@@ -80,7 +51,7 @@ public final class WeatherAPIPromptEngine {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<String> future = executor.submit(() -> {
             try {
-                URL url = new URL(URL_TO_TOMORROW_IO);
+                URL url = new URL("https://api.tomorrow.io/v4/weather/forecast?location=" + latitude + "," + longitude + "&apikey=lJJSlWZaiv9LeL1iS35I7QnuMQkPMOya");
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
                 con.setRequestProperty("Content-Type", "application/json");
@@ -93,6 +64,7 @@ public final class WeatherAPIPromptEngine {
                     }
                 }
                 weatherData = extractWeatherData(response.toString());
+                timeDataLastGathered = System.currentTimeMillis();
                 return "Weather API connection successful.";
             } catch (IOException e) {
                 System.out.println("An error occurred while processing the request. Please check your internet connection.");
@@ -147,5 +119,21 @@ public final class WeatherAPIPromptEngine {
             System.out.println("An error occurred while processing the request.");
             return null;
         }
+    }
+
+    public void setLongitude(String longitude) {
+        this.longitude = longitude;
+    }
+
+    public void setLatitude(String latitude) {
+        this.latitude = latitude;
+    }
+
+    public String getLongitude() {
+        return longitude;
+    }
+
+    public String getLatitude() {
+        return latitude;
     }
 }

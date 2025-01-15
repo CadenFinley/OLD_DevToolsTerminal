@@ -3,6 +3,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
@@ -118,26 +119,26 @@ public class TestSuite_DevTools {
     }
 
     @Test
-    public void testOPENAICONNECTION() {
+    public void testOPENAICONNECTION() throws TimeoutException {
         assertTrue(OpenAIPromptEngine.testAPIKey(Engine.getOpenAI_API_KEY()));
     }
 
     @Test
-    public void testPromptEngineReceiveInput() {
+    public void testPromptEngineReceiveInput() throws TimeoutException {
         prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), true);
         String message = "This is a test message to verify connection to OPENAI API.";
         assertTrue(prompt.buildPromptAndReturnResponce(message) != null && !"AI generation is disabled. You can enable it in settings.\n".equals(prompt.buildPromptAndReturnResponce(message)));
     }
 
     @Test
-    public void testPromptEngineReceiveInput0() {
+    public void testPromptEngineReceiveInput0() throws TimeoutException {
         prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), false);
         String message = "This is a test message to verify connection to OPENAI API.";
         assertEquals("AI generation is disabled. You can enable it in settings.\n", prompt.buildPromptAndReturnResponce(message));
     }
 
     @Test
-    public void testPromptCachedMessage() {
+    public void testPromptCachedMessage() throws TimeoutException {
         prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), true);
         String message = "This is a test message to verify connection to OPENAI API.";
         prompt.buildPromptAndReturnNoResponce(message);
@@ -145,7 +146,7 @@ public class TestSuite_DevTools {
     }
 
     @Test
-    public void testPromptCachedMessage0() {
+    public void testPromptCachedMessage0() throws TimeoutException {
         prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), false);
         String message = "This is a test message to verify connection to OPENAI API.";
         prompt.buildPromptAndReturnNoResponce(message);
@@ -153,7 +154,7 @@ public class TestSuite_DevTools {
     }
 
     @Test
-    public void testPromptEngineReceiveInput1() {
+    public void testPromptEngineReceiveInput1() throws TimeoutException {
         prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY(), true);
         String message = "This is a test message to verify connection to OPENAI API.";
         String received = prompt.buildPromptAndReturnResponce(message);
