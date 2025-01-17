@@ -376,6 +376,11 @@ public class Engine {
             System.out.println(openAIPromptEngine.getResponseData(lastCommandParsed));
             return;
         }
+        if (lastCommandParsed.equals("dump")) {
+            System.out.println(openAIPromptEngine.getResponseData("all"));
+            System.out.println(openAIPromptEngine.getLastPromptUsed());
+            return;
+        }
         if (lastCommandParsed.equals("help")) {
             System.out.println("Commands: ");
             System.out.println("apikey: set [ARGS], get");

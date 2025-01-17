@@ -75,11 +75,13 @@ public class OpenAIPromptEngine {
             String model = "gpt-3.5-turbo";
             String sentMessage;
             if (useCache && !lastPromptUsed.equals("")) {
-                sentMessage = "These are the previous messages from this conversation: '" + chatCache.toString() + "' This is the users response based on the previous conversation: '" + message + "'";
+                sentMessage = "These are the previous messages from this conversation: '" + chatCache.toString().trim() + "' This is the users response based on the previous conversation: '" + message + "'";
             } else {
                 sentMessage = message;
             }
+            lastPromptUsed = sentMessage;
             //System.out.println("OpenAI: " + System.currentTimeMillis() + " Sending message to OpenAI API: " + sentMessage);
+            StringBuilder response = new StringBuilder();
             try {
                 URL obj = new URL(url);
                 HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -92,7 +94,6 @@ public class OpenAIPromptEngine {
                     writer.write(body);
                     writer.flush();
                 }
-                StringBuilder response;
                 try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
                     String inputLine;
                     response = new StringBuilder();
@@ -101,12 +102,12 @@ public class OpenAIPromptEngine {
                     }
                 }
                 // returns the extracted contents of the response.
-                lastPromptUsed = message;
                 responseDataMap = parseJSONResponse(response.toString());
                 lastResponseReceived = extractContentFromJSON(response.toString());
                 return lastResponseReceived;
             } catch (IOException e) {
                 System.out.println("OpenAI API connection failed. Please check your internet connection and try again later. " + System.currentTimeMillis() + " " + e.getMessage());
+                lastResponseReceived = response.toString();
                 return null;
             }
         });
@@ -220,9 +221,12 @@ public class OpenAIPromptEngine {
 
     public String getResponseData(String key) {
         if ("all".equals(key)) {
+            if (responseDataMap == null || responseDataMap.isEmpty()) {
+                return "No data available.";
+            }
             return responseDataMap.toString();
         }
-        if (responseDataMap.get(key) == null) {
+        if (responseDataMap.get(key) == null || responseDataMap.isEmpty()) {
             return "No data available.";
         }
         return responseDataMap.get(key).toString();

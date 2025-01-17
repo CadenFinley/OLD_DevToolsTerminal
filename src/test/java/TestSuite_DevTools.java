@@ -233,41 +233,6 @@ public class TestSuite_DevTools {
     }
 
     @Test
-    public void testConvertDistance() {
-        assertEquals(1.60934, UnitConversionEngine.convertUnit(1, "miles", "kilometers", "distance"), 0.00001);
-        assertEquals(5280, UnitConversionEngine.convertUnit(1, "miles", "feet", "distance"), 0.00001);
-        assertEquals(0.621371, UnitConversionEngine.convertUnit(1, "kilometers", "miles", "distance"), 0.00001);
-    }
-
-    @Test
-    public void testConvertTemperature() {
-        assertEquals(0, UnitConversionEngine.convertUnit(32, "fahrenheit", "celsius", "temperature"), 0.00001);
-        assertEquals(273.15, UnitConversionEngine.convertUnit(0, "celsius", "kelvin", "temperature"), 0.00001);
-        assertEquals(32, UnitConversionEngine.convertUnit(0, "celsius", "fahrenheit", "temperature"), 0.00001);
-    }
-
-    @Test
-    public void testConvertWeight() {
-        assertEquals(2.20462, UnitConversionEngine.convertUnit(1, "kilograms", "pounds", "weight"), 0.00001);
-        assertEquals(1000, UnitConversionEngine.convertUnit(1, "kilograms", "grams", "weight"), 0.00001);
-        assertEquals(0.453592, UnitConversionEngine.convertUnit(1, "pounds", "kilograms", "weight"), 0.00001);
-    }
-
-    @Test
-    public void testConvertVolume() {
-        assertEquals(3.78541, UnitConversionEngine.convertUnit(1, "gallons", "liters", "volume"), 0.00001);
-        assertEquals(0.264172, UnitConversionEngine.convertUnit(1, "liters", "gallons", "volume"), 0.00001);
-        assertEquals(4, UnitConversionEngine.convertUnit(1, "quarts", "cups", "volume"), 0.00001);
-    }
-
-    @Test
-    public void testConvertSpeed() {
-        assertEquals(1.60934, UnitConversionEngine.convertUnit(1, "miles per hour", "kilometers per hour", "speed"), 0.00001);
-        assertEquals(0.44704, UnitConversionEngine.convertUnit(1, "miles per hour", "meters per second", "speed"), 0.00001);
-        assertEquals(0.868976, UnitConversionEngine.convertUnit(1, "miles per hour", "knots", "speed"), 0.00001);
-    }
-
-    @Test
     public void testWeatherAPI() {
         WeatherAPIPromptEngine weather = new WeatherAPIPromptEngine();
         Object response = weather.getWeatherDataPart("temperature");

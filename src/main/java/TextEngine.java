@@ -27,12 +27,6 @@ public abstract class TextEngine {
 
     private static final String[] BREAK_COMMANDS = {};
 
-    /**
-     * Sets the terminal width by querying the terminal for its current width.
-     * On Windows, it uses the "mode con" command, and on Unix-like systems, it
-     * uses the "tput cols" command. If the terminal width cannot be determined,
-     * a default width of 80 is used.
-     */
     public static String setWidth() {
         try {
             String os = System.getProperty("os.name").toLowerCase();
@@ -150,15 +144,6 @@ public abstract class TextEngine {
         }
     }
 
-    /**
-     * Prints the given data with delays between characters based on the speed
-     * setting. If buffering is enabled, it adds a prompt to press enter to type
-     * after the text is printed.
-     *
-     * @param data The data to be printed.
-     * @param buffer If true, adds a prompt to press enter to type after the
-     * text is printed.
-     */
     public static void printNoDelay(String data, boolean buffer) { //use buffer is you are accepting input after the text is printed
         boolean needToBreak = false;
         if (buffer) {
@@ -235,11 +220,6 @@ public abstract class TextEngine {
         }
     }
 
-    /**
-     * Adds a pause and waits for the user to press Enter to continue. If the
-     * application is not in testing mode, it will print a message prompting the
-     * user to press Enter and then wait for the Enter key to be pressed.
-     */
     public static void enterToNext() { //adds a pause and waits for enter
         if (Engine.TESTING) {
             return;
@@ -248,27 +228,10 @@ public abstract class TextEngine {
         console.readLine();
     }
 
-    /**
-     * Checks if the input command is valid.
-     *
-     * @param command the input command to be checked
-     * @return {@code true} if the command is not null, not empty, and not an
-     * empty string; {@code false} otherwise
-     */
     public static Boolean checkValidInput(String command) { //checks for valid input command
         return command != null && !command.isEmpty() && !"".equals(command);
     }
 
-    /**
-     * Parses the input command and matches it against a list of possible
-     * commands. If the command is found in the list of illegal commands, it
-     * returns the command as is. Otherwise, it tries to find the best match
-     * from the possible commands.
-     *
-     * @param command the input command to be parsed
-     * @param possibleCommands an array of possible commands to match against
-     * @return the matched command if found, otherwise the original command
-     */
     public static String parseCommand(String command, String possibleCommands[]) {
         String matchedCommand = command;
         int maxMatchLength = 0;
@@ -290,13 +253,6 @@ public abstract class TextEngine {
         return (maxMatchLength > 0 && has(possibleCommands, matchedCommand)) ? matchedCommand.toLowerCase() : command.toLowerCase();
     }
 
-    /**
-     * Calculates the length of the matching prefix between two strings.
-     *
-     * @param command the first string to compare
-     * @param possibleCommand the second string to compare
-     * @return the length of the matching prefix
-     */
     public static int getMatchLength(String command, String possibleCommand) {
         if (command == null || possibleCommand == null) {
             return 0;
@@ -313,14 +269,6 @@ public abstract class TextEngine {
         return matchLength;
     }
 
-    /**
-     * Checks if a given command is present in an array of possible commands.
-     *
-     * @param possibleCommands an array of possible commands
-     * @param matchedCommand the command to check for
-     * @return true if the matchedCommand is found in possibleCommands, false
-     * otherwise
-     */
     public static boolean has(String[] possibleCommands, String matchedCommand) {
         for (String possibleCommand : possibleCommands) {
             if (possibleCommand.equals(matchedCommand)) {
