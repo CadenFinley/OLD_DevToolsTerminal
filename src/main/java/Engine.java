@@ -328,6 +328,7 @@ public class Engine {
                     return;
                 } else {
                     openAIPromptEngine.clearChatCache();
+                    savedChatCache = new ArrayList<>();
                     TextEngine.printWithDelays(AI_CHAT_HEADER + "Chat history cleared.", false);
                     TextEngine.clearScreen();
                     return;
@@ -340,6 +341,7 @@ public class Engine {
             if (message.equals("new chat")) {
                 chatProcess();
                 openAIPromptEngine.clearChatCache();
+                savedChatCache = new ArrayList<>();
             }
             String response = openAIPromptEngine.buildPromptAndReturnResponce(message);
             TextEngine.printWithDelays(GREEN_COLOR_BOLD + "ChatGPT: " + RESET_COLOR + response, false);
