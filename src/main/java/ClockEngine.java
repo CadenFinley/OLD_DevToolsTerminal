@@ -19,7 +19,7 @@ public class ClockEngine {
     private long remainingTimeInSeconds = 0;
     private final String whatAmI;
     private boolean hasTrigger = false;
-    private Object trigger = null;
+    private final Object trigger;
 
     /**
      * Constructs a ClockEngine with the specified type.
@@ -29,9 +29,9 @@ public class ClockEngine {
     public ClockEngine(String type, Object trigger) {
         this.running = false;
         this.whatAmI = type;
+        this.trigger = trigger;
         if (trigger != null) {
             hasTrigger = true;
-            this.trigger = trigger;
         }
     }
 

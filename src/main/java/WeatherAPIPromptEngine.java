@@ -26,16 +26,16 @@ import org.json.JSONObject;
  */
 public final class WeatherAPIPromptEngine {
 
-    private String latitude = "40.712776";
-    private String longitude = "-74.005974";
+    private String latitude = "32";
+    private String longitude = "99";
     private Map<String, Object> weatherData;
     private Object timeDataLastGathered;
 
     public WeatherAPIPromptEngine() {
-        recallWeather();
+        refreshWeather();
     }
 
-    public void recallWeather() {
+    public void refreshWeather() {
         weatherAPI();
     }
 
@@ -65,9 +65,9 @@ public final class WeatherAPIPromptEngine {
                 }
                 weatherData = extractWeatherData(response.toString());
                 timeDataLastGathered = System.currentTimeMillis();
-                return "Weather API connection successful.";
+                return "Weather API connection successful. " + System.currentTimeMillis();
             } catch (IOException e) {
-                System.out.println("An error occurred while processing the request. Please check your internet connection.");
+                System.out.println("Weather API: " + System.currentTimeMillis() + "An error occurred while processing the request.");
                 return null;
             }
         });
@@ -75,10 +75,10 @@ public final class WeatherAPIPromptEngine {
             return future.get(10, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             future.cancel(true);
-            System.out.println("Weather API connection timed out.");
+            System.out.println("Weather API connection timed out. " + System.currentTimeMillis());
             return null;
         } catch (InterruptedException | ExecutionException e) {
-            TextEngine.printNoDelay("An error occurred while processing the request.", false);
+            System.out.println("Weather API: " + System.currentTimeMillis() + "An error occurred while processing the request.");
             return null;
         } finally {
             executor.shutdown();
@@ -116,7 +116,7 @@ public final class WeatherAPIPromptEngine {
 
             return dataMap;
         } catch (JSONException e) {
-            System.out.println("An error occurred while processing the request.");
+            System.out.println("Weather API: " + System.currentTimeMillis() + "An error occurred while processing the request.");
             return null;
         }
     }
@@ -135,5 +135,9 @@ public final class WeatherAPIPromptEngine {
 
     public String getLatitude() {
         return latitude;
+    }
+
+    public Object getTimeDataLastGathered() {
+        return timeDataLastGathered;
     }
 }

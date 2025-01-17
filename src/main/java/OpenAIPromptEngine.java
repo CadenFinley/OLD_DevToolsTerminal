@@ -5,12 +5,12 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.concurrent.Callable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -24,23 +24,22 @@ import java.util.concurrent.TimeoutException;
 public class OpenAIPromptEngine {
 
     private String USER_API_KEY = null;
-    private boolean aiGenerationEnabled = false;
     private String lastPromptUsed = "";
     private String lastResponseReceived = "";
+    List<String> chatCache = new ArrayList<>();
 
     /**
      * Constructs a PromptEngine object with the specified API key.
-     *
-     * @param apiKey The `PromptEngine` constructor takes an API key as a
-     * parameter and initializes the `USER_API_KEY` variable with the provided
-     * key.
      */
-    public OpenAIPromptEngine(String apiKey, boolean aiEnabled) throws TimeoutException {
+    public OpenAIPromptEngine(String apiKey) {
         this.USER_API_KEY = apiKey;
-        this.aiGenerationEnabled = aiEnabled;
-        if (aiGenerationEnabled && !testAPIKey(USER_API_KEY)) {
-            aiGenerationEnabled = false;
-        }
+    }
+
+    /**
+     * Constructs a PromptEngine object.
+     */
+    public OpenAIPromptEngine() {
+        // Do nothing
     }
 
     /**
@@ -49,12 +48,13 @@ public class OpenAIPromptEngine {
      * @param message
      */
     public String buildPromptAndReturnResponce(String message) {
-        if (aiGenerationEnabled) {
-            lastPromptUsed = message;
-            lastResponseReceived = chatGPT(message);
-            return lastResponseReceived;
+        if (USER_API_KEY == null) {
+            return "API key not set.";
         }
-        return "AI generation is disabled. You can enable it in settings.\n";
+        String response = chatGPT(message);
+        chatCache.add("User: " + message);
+        chatCache.add("ChatGPT: " + message);
+        return response;
     }
 
     /**
@@ -64,12 +64,11 @@ public class OpenAIPromptEngine {
      * @param message
      */
     public void buildPromptAndReturnNoResponce(String message) {
-        if (aiGenerationEnabled) {
-            lastPromptUsed = message;
-            lastResponseReceived = chatGPT(message);
+        if (USER_API_KEY == null) {
+            System.out.println("OpenAI: " + System.currentTimeMillis() + "API key not set.");
             return;
         }
-        System.out.println("AI generation is disabled. You can enable it in settings.\n");
+        chatGPT(message);
     }
 
     /**
@@ -90,13 +89,19 @@ public class OpenAIPromptEngine {
             String url = "https://api.openai.com/v1/chat/completions";
             String apiKey = USER_API_KEY; // API key goes here
             String model = "gpt-3.5-turbo";
+            String sentMessage;
+            if (!lastPromptUsed.equals("")) {
+                sentMessage = "These are the previous messages: " + chatCache.toString() + "This is the users responce based on the previous conversation: " + message;
+            } else {
+                sentMessage = message;
+            }
             try {
                 URL obj = new URL(url);
                 HttpURLConnection con = (HttpURLConnection) obj.openConnection();
                 con.setRequestMethod("POST");
                 con.setRequestProperty("Authorization", "Bearer " + apiKey);
                 con.setRequestProperty("Content-Type", "application/json");
-                String body = "{\"model\": \"" + model + "\", \"messages\": [{\"role\": \"user\", \"content\": \"" + message + "\"}]}";
+                String body = "{\"model\": \"" + model + "\", \"messages\": [{\"role\": \"user\", \"content\": \"" + sentMessage + "\"}]}";
                 con.setDoOutput(true);
                 try (OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream())) {
                     writer.write(body);
@@ -111,12 +116,12 @@ public class OpenAIPromptEngine {
                     }
                 }
                 // returns the extracted contents of the response.
-                return extractContentFromResponse(response.toString());
+                lastPromptUsed = message;
+                lastResponseReceived = extractContentFromResponse(response.toString());
+                return lastResponseReceived;
             } catch (IOException e) {
-                TextEngine.printNoDelay("OpenAI API connection failed. Please check your internet connection and try again later.", false);
-                TextEngine.printNoDelay("AI generation has been disabled. You can renable it in settings.", false);
-                TextEngine.enterToNext();
-                aiGenerationEnabled = false;
+                System.out.println("OpenAI API connection failed. Please check your internet connection and try again later. " + System.currentTimeMillis());
+                System.out.println("OpenAI: " + System.currentTimeMillis() + " AI generation has been disabled.");
                 return null;
             }
         });
@@ -124,14 +129,11 @@ public class OpenAIPromptEngine {
             return future.get(10, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             future.cancel(true);
-            TextEngine.printNoDelay("OpenAI API connection timed out.", false);
-            TextEngine.printNoDelay("AI generation has been disabled. You can renable it in settings.", false);
-            TextEngine.enterToNext();
-            aiGenerationEnabled = false;
+            System.out.println("OpenAI API connection timed out." + System.currentTimeMillis());
+            System.out.println("OpenAI: " + System.currentTimeMillis() + " AI generation has been disabled. You can renable it in settings.");
             return null;
         } catch (InterruptedException | ExecutionException e) {
-            TextEngine.printNoDelay("An error occurred while processing the request.", false);
-            aiGenerationEnabled = false;
+            System.out.println("OpenAI: " + System.currentTimeMillis() + " An error occurred while processing the request.");
             return null;
         } finally {
             executor.shutdown();
@@ -169,83 +171,35 @@ public class OpenAIPromptEngine {
      * issue) or the response does not contain the expected content, it returns
      * `false`.
      */
-    public static boolean testAPIKey(String apiKey) throws TimeoutException {
-        Callable<Boolean> task = () -> {
-            String testMessage = "This is a test message to check if the API key is valid.";
+    public static boolean testAPIKey(String apiKey) {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executor.submit(() -> {
+            String url = "https://api.openai.com/v1/engines";
             try {
-                String url = "https://api.openai.com/v1/chat/completions";
-                String model = "gpt-3.5-turbo";
                 URL obj = new URL(url);
                 HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-                con.setRequestMethod("POST");
+                con.setRequestMethod("GET");
                 con.setRequestProperty("Authorization", "Bearer " + apiKey);
-                con.setRequestProperty("Content-Type", "application/json");
-                String body = "{\"model\": \"" + model + "\", \"messages\": [{\"role\": \"user\", \"content\": \"" + testMessage + "\"}]}";
-                con.setDoOutput(true);
-                try (OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream())) {
-                    writer.write(body);
-                    writer.flush();
+                int responseCode = con.getResponseCode();
+                if (responseCode != 200) {
+                    System.out.println("Response Code: " + responseCode);
+                    return false;
                 }
-                StringBuilder response;
-                try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
-                    String inputLine;
-                    response = new StringBuilder();
-                    while ((inputLine = in.readLine()) != null) {
-                        response.append(inputLine);
-                    }
-                }
-                // Check if the response contains the expected content
-                String responseContent = extractContentFromResponse(response.toString());
-                return responseContent != null && !responseContent.isEmpty();
+                return true;
             } catch (IOException e) {
-                TextEngine.printNoDelay("API Key failed. Please check your internet connection", false);
                 return false;
             }
-        };
-
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        Future<Boolean> future = executor.submit(task);
+        });
         try {
-            return future.get(10, TimeUnit.SECONDS); // Set timeout to 10 seconds
+            return future.get(10, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             future.cancel(true);
-            TextEngine.printNoDelay("API Key validation timed out. AI generation is disabled, re-enable it in settings.", false);
-            TextEngine.enterToNext();
             return false;
         } catch (InterruptedException | ExecutionException e) {
-            TextEngine.printNoDelay("API Key failed. AI generation is disabled, re-enable it in settings.", false);
-            TextEngine.enterToNext();
             return false;
         } finally {
             executor.shutdown();
         }
-    }
-
-    /**
-     * The function `setAIEnabled` enables or disables AI generation.
-     *
-     * @param enabled The `setAIEnabled` method takes a boolean parameter
-     * `enabled` that specifies whether AI generation should be enabled or
-     * disabled. If `enabled` is `true`, AI generation is enabled; if `enabled`
-     * is `false`, AI generation is disabled.
-     * @throws TimeoutException
-     */
-    public void setAIEnabled(boolean enabled) throws TimeoutException {
-        this.aiGenerationEnabled = enabled;
-        if (enabled && !testAPIKey(USER_API_KEY)) {
-            aiGenerationEnabled = false;
-        }
-    }
-
-    /**
-     * The function `isAIEnabled` checks if AI generation is enabled.
-     *
-     * @return The `isAIEnabled` method returns a boolean value indicating
-     * whether AI generation is enabled. If AI generation is enabled, the method
-     * returns `true`; otherwise, it returns `false`.
-     */
-    public boolean isAIEnabled() {
-        return aiGenerationEnabled;
     }
 
     /**
@@ -255,11 +209,8 @@ public class OpenAIPromptEngine {
      * @throws TimeoutException
      *
      */
-    public void setAPIKey(String apiKey) throws TimeoutException {
+    public void setAPIKey(String apiKey) {
         this.USER_API_KEY = apiKey;
-        if (aiGenerationEnabled && !testAPIKey(USER_API_KEY)) {
-            aiGenerationEnabled = false;
-        }
     }
 
     /**
@@ -291,5 +242,9 @@ public class OpenAIPromptEngine {
      */
     public String getLastResponseReceived() {
         return lastResponseReceived;
+    }
+
+    public List<String> getChatCache() {
+        return chatCache;
     }
 }

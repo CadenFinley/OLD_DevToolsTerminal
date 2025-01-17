@@ -3,7 +3,10 @@ import java.io.Console;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.concurrent.TimeoutException;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import org.json.JSONObject;
 
@@ -14,7 +17,6 @@ public class Engine {
 
     private static final Console console = System.console();
     public static boolean TESTING = false;
-    private static String OpenAI_API_KEY;
     private static WeatherAPIPromptEngine weatherAPIPromptEngine;
     private static OpenAIPromptEngine openAIPromptEngine;
     private static ClockEngine clockEngine;
@@ -22,6 +24,15 @@ public class Engine {
     private static boolean weatherRefresh = true;
     private static boolean locationOn = false;
     private static boolean AIon = false;
+    private static Queue<String> commandsQueue = null;
+    private static String lastCommandParsed = null;
+
+    private static final String GREEN_COLOR_BOLD = "\033[1;32m";
+    private static final String RESET_COLOR = "\033[0m";
+
+    private static final String MAIN_MENU_HEADER = GREEN_COLOR_BOLD + "Main Menu: " + RESET_COLOR;
+    private static final String AI_CHAT_HEADER = GREEN_COLOR_BOLD + "AI Chat: " + RESET_COLOR;
+    private static final String SETUP_HEADER = GREEN_COLOR_BOLD + "Setup: " + RESET_COLOR;
 
     private static final File USER_DATA = new File("userData.json");
 
@@ -29,48 +40,366 @@ public class Engine {
         return System.getProperty("os.name");
     }
 
-    public static String getOpenAI_API_KEY() {
-        return OpenAI_API_KEY;
-    }
-
-    public static void main(String[] args) throws InterruptedException, TimeoutException {
+    public static void main(String[] args) {
+        TextEngine.clearScreen();
+        TextEngine.printWithDelays("Loading...", false);
         TextEngine.setWidth();
         if (TESTING) {
             System.out.println("Testing mode is enabled.");
         }
         weatherAPIPromptEngine = new WeatherAPIPromptEngine();
-        openAIPromptEngine = new OpenAIPromptEngine(OpenAI_API_KEY, AIon);
+        openAIPromptEngine = new OpenAIPromptEngine();
+        TextEngine.clearScreen();
         if (!USER_DATA.exists()) {
             firstBoot();
+        } else {
+            loadUserData();
         }
         if (locationOn) {
             ENGINE_SERVICE.weatherListener();
         }
+        TextEngine.printWithDelays(MAIN_MENU_HEADER + "Welcome back!", false);
+        while (true) {
+            TextEngine.printWithDelays(MAIN_MENU_HEADER + "Please enter a command.", true);
+            String command = console.readLine();
+            commandParser(command);
+        }
     }
 
-    private static void firstBoot() throws InterruptedException, TimeoutException {
-        TextEngine.printWithDelays("Welcome!", false);
-        TextEngine.printWithDelays("This is your first time using this program.", false);
+    private static void loadUserData() {
+        try {
+            JSONObject userData = new JSONObject(Files.readString(USER_DATA.toPath()));
+            openAIPromptEngine.setAPIKey(userData.getString("OpenAI_API_KEY"));
+            AIon = userData.getBoolean("Ai_Enabled");
+            locationOn = userData.getBoolean("Location_Enable");
+            weatherAPIPromptEngine.setLatitude(userData.getString("latitude"));
+            weatherAPIPromptEngine.setLongitude(userData.getString("longitude"));
+        } catch (IOException e) {
+            TextEngine.printWithDelays("An error occurred while reading the user data file.", false);
+        }
+    }
+
+    private static void commandParser(String command) {
+        if (command == null) {
+            TextEngine.printWithDelays("Invalid input. Please try again.", true);
+            return;
+        }
+        commandsQueue = new LinkedList<>();
+        commandsQueue.addAll(Arrays.asList(command.split(" ")));
+        if (TESTING) {
+            System.out.println(commandsQueue);
+        }
+        if (commandsQueue.isEmpty()) {
+            TextEngine.printWithDelays("Unknown command. Please try again.", false);
+        }
+        getNextCommand();
+        switch (lastCommandParsed) {
+            case "weather" -> {
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                    return;
+                }
+                if (lastCommandParsed.equals("help")) {
+                    TextEngine.printWithDelays("Commands: refresh, get, enable, disable, change", false);
+                    return;
+                }
+                if (!locationOn) {
+                    TextEngine.printWithDelays("Location based services are disabled.", false);
+                    return;
+                }
+                if (lastCommandParsed == null) {
+                    return;
+                }
+                if (lastCommandParsed.equals("refresh")) {
+                    weatherAPIPromptEngine.refreshWeather();
+                    return;
+                }
+                if (lastCommandParsed.equals("get")) {
+                    TextEngine.printWithDelays("Current weather: " + weatherAPIPromptEngine.getWeatherDataPart("temperature") + "°C", false);
+                    return;
+                }
+                if (lastCommandParsed.equals("change")) {
+                    getNextCommand();
+                    if (lastCommandParsed.equals("location")) {
+                        getNextCommand();
+                        if (lastCommandParsed == null) {
+                            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                            return;
+                        }
+                        weatherAPIPromptEngine.setLatitude(lastCommandParsed);
+                        getNextCommand();
+                        if (lastCommandParsed == null) {
+                            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                            return;
+                        }
+                        weatherAPIPromptEngine.setLongitude(lastCommandParsed);
+                        TextEngine.printWithDelays("Location successfully set. Latitude: " + weatherAPIPromptEngine.getLatitude() + " Longetude: " + weatherAPIPromptEngine.getLongitude(), false);
+                    }
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                }
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+            }
+            case "ai" -> {
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                    return;
+                }
+                if (lastCommandParsed.equals("help")) {
+                    TextEngine.printWithDelays("Commands: chat, enable, disable", false);
+                    return;
+                }
+                if (lastCommandParsed.equals("enable")) {
+                    System.out.println("AI services are enabled.");
+                    AIon = true;
+                    getNextCommand();
+                    if (lastCommandParsed == null) {
+                        return;
+                    }
+                    if (openAIPromptEngine.getAPIKey() == null && !lastCommandParsed.equals("set")) {
+                        System.out.println("API key not set.");
+                        return;
+                    }
+                }
+                if (lastCommandParsed.equals("disable")) {
+                    AIon = false;
+                    getNextCommand();
+                }
+                if (lastCommandParsed.equals("set")) {
+                    getNextCommand();
+                    if (lastCommandParsed == null) {
+                        TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                        return;
+                    }
+                    if (lastCommandParsed.equals("apikey")) {
+                        getNextCommand();
+                        if (lastCommandParsed == null) {
+                            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                            return;
+                        }
+                        openAIPromptEngine.setAPIKey(lastCommandParsed);
+                        if (OpenAIPromptEngine.testAPIKey(openAIPromptEngine.getAPIKey())) {
+                            System.out.println("OpenAI API key set.");
+                            return;
+                        } else {
+                            AIon = false;
+                            TextEngine.printWithDelays("Invalid API key. AI services have been disabled", false);
+                            return;
+                        }
+                    }
+                }
+                if (lastCommandParsed == null) {
+                    return;
+                }
+                if (lastCommandParsed.equals("apikey")) {
+                    System.out.println(openAIPromptEngine.getAPIKey());
+                    getNextCommand();
+                }
+                if (lastCommandParsed == null) {
+                    return;
+                }
+                if (lastCommandParsed.equals("chat")) {
+                    chatProcess();
+                    return;
+                }
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+            }
+            case "user" -> {
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                    return;
+                }
+                if (lastCommandParsed.equals("data")) {
+                    System.out.println(readAndReturnUserDataFile());
+                    return;
+                }
+                if (lastCommandParsed.equals("location")) {
+                    getNextCommand();
+                    if (lastCommandParsed == null) {
+                        TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                        return;
+                    }
+                    if (lastCommandParsed.equals("enable")) {
+                        locationOn = true;
+                        TextEngine.printWithDelays("Location based services have been enabled.", false);
+                        getNextCommand();
+                        if (lastCommandParsed == null) {
+                            return;
+                        }
+                    }
+                    if (lastCommandParsed.equals("disable")) {
+                        locationOn = false;
+                        TextEngine.printWithDelays("Location based services have been disabled.", false);
+                        getNextCommand();
+                        if (lastCommandParsed == null) {
+                            return;
+                        }
+                    }
+                    if (lastCommandParsed.equals("set")) {
+                        getNextCommand();
+                        if (lastCommandParsed == null) {
+                            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                            return;
+                        }
+                        weatherAPIPromptEngine.setLatitude(lastCommandParsed);
+                        getNextCommand();
+                        if (lastCommandParsed == null) {
+                            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                            return;
+                        }
+                        weatherAPIPromptEngine.setLongitude(lastCommandParsed);
+                        TextEngine.printWithDelays("Location successfully set. Latitude: " + weatherAPIPromptEngine.getLatitude() + " Longetude: " + weatherAPIPromptEngine.getLongitude(), false);
+                        return;
+                    }
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                }
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+            }
+            case "exit" ->
+                exit();
+            case "help" ->
+                TextEngine.printWithDelays("Commands: weather, ai, exit, help", false);
+            default ->
+                TextEngine.printWithDelays("Unknown command. Please try again.", false);
+        }
+    }
+
+    private static void chatProcess() {
+        TextEngine.clearScreen();
+        if (!AIon) {
+            TextEngine.printWithDelays(AI_CHAT_HEADER + "AI services are disabled. Please enable them to use this feature.", false);
+            TextEngine.enterToNext();
+            return;
+        }
+        TextEngine.printNoDelay("Loading...", false);
+        if (OpenAIPromptEngine.testAPIKey(openAIPromptEngine.getAPIKey())) {
+            TextEngine.clearScreen();
+            TextEngine.printWithDelays(AI_CHAT_HEADER + "Successfully Connected to OpenAI servers!", false);
+        } else {
+            TextEngine.clearScreen();
+            AIon = false;
+            TextEngine.printWithDelays(AI_CHAT_HEADER + "An error occurred while connecting to OpenAI servers.", false);
+            TextEngine.printWithDelays(AI_CHAT_HEADER + "Please check your internet connection and try again later.", false);
+            TextEngine.enterToNext();
+            return;
+        }
+        while (true) {
+            TextEngine.printWithDelays(AI_CHAT_HEADER, true);
+            String message = console.readLine();
+            System.out.println();
+            if (message == null) {
+                TextEngine.printWithDelays(AI_CHAT_HEADER + "Invalid input. Please try again.", false);
+                return;
+            }
+            if (message.equals("exit")) {
+                TextEngine.printWithDelays(AI_CHAT_HEADER + "Exiting chat.", false);
+                TextEngine.clearScreen();
+                return;
+            }
+            if (message.equals("help")) {
+                TextEngine.printWithDelays(AI_CHAT_HEADER + "Commands: exit, help, new chat", false);
+                continue;
+            }
+            if (message.equals("new chat")) {
+                chatProcess();
+            }
+            String response = openAIPromptEngine.buildPromptAndReturnResponce(message);
+            TextEngine.printWithDelays(GREEN_COLOR_BOLD + "ChatGPT: " + RESET_COLOR + response, false);
+            System.out.println();
+        }
+    }
+
+    private static String readAndReturnUserDataFile() {
+        try {
+            String userData = Files.readString(USER_DATA.toPath());
+            return userData;
+        } catch (IOException e) {
+            TextEngine.printWithDelays("An error occurred while reading the user data file.", false);
+            return null;
+        }
+    }
+
+    private static void getNextCommand() {
+        if (!commandsQueue.isEmpty()) {
+            lastCommandParsed = commandsQueue.poll();
+            if (TESTING) {
+                System.out.println("Processed Command: " + lastCommandParsed);
+            }
+        } else {
+            lastCommandParsed = null;
+        }
+    }
+
+    private static void exit() {
+        writeUserData();
+        TextEngine.printWithDelays("Exiting...", false);
+        TextEngine.clearScreen();
+        System.exit(0);
+    }
+
+    private static void firstBoot() {
+        TextEngine.printWithDelays(SETUP_HEADER + "Welcome!", false);
+        TextEngine.printWithDelays(SETUP_HEADER + "This is your first time using this program.", false);
         setOpenAiAPIKey();
-        setLocation();
+        while (true) {
+            TextEngine.printWithDelays(SETUP_HEADER + "Would you like to turn on location based services? 'y' or 'n'", true);
+            if ("y".equals(console.readLine().trim().toLowerCase())) {
+                locationOn = true;
+                break;
+            }
+            TextEngine.printWithDelays(SETUP_HEADER + "Location based services have been turned off", false);
+            TextEngine.enterToNext();
+            locationOn = false;
+            return;
+        }
+        String latitude;
+        String longitude;
+        if (!locationOn) {
+            return;
+        }
+        while (true) {
+            TextEngine.printWithDelays(SETUP_HEADER + "Please enter your latitude.", true);
+            latitude = console.readLine();
+            TextEngine.printWithDelays(SETUP_HEADER + "Please enter your longitude.", true);
+            longitude = console.readLine();
+            if (latitude == null || longitude == null) {
+                TextEngine.printWithDelays(SETUP_HEADER + "Invalid input. Please try again.", false);
+            }
+            try {
+                float lat = Float.parseFloat(latitude);
+                float lon = Float.parseFloat(longitude);
+                if (lat > 90 || lat < -90 || lon > 180 || lon < -180) {
+                    TextEngine.printWithDelays(SETUP_HEADER + "Invalid input. Please try again.", false);
+                    continue;
+                }
+                break;
+            } catch (NumberFormatException e) {
+                TextEngine.printWithDelays(SETUP_HEADER + "Invalid input. Please try again.", false);
+            }
+        }
+        weatherAPIPromptEngine.setLatitude(latitude);
+        weatherAPIPromptEngine.setLongitude(longitude);
+        TextEngine.printWithDelays(SETUP_HEADER + "Location successfully set. Latitude: " + weatherAPIPromptEngine.getLatitude() + " Longetude: " + weatherAPIPromptEngine.getLongitude(), false);
+        TextEngine.enterToNext();
         try {
             USER_DATA.createNewFile();
             writeUserData();
         } catch (IOException e) {
-            TextEngine.printWithDelays("An error occurred while creating the user data file.", false);
+            TextEngine.printWithDelays(SETUP_HEADER + "An error occurred while creating the user data file.", false);
             System.exit(1);
         }
     }
 
-    private static void writeUserData() throws InterruptedException {
+    private static void writeUserData() {
         try (FileWriter file = new FileWriter(USER_DATA)) {
             JSONObject userData = new JSONObject();
-            userData.put("OpenAI_API_KEY", OpenAI_API_KEY);
+            userData.put("OpenAI_API_KEY", openAIPromptEngine.getAPIKey());
             userData.put("latitude", weatherAPIPromptEngine.getLatitude());
             userData.put("longitude", weatherAPIPromptEngine.getLongitude());
             userData.put("Ai_Enabled", AIon);
             userData.put("Location_Enable", locationOn);
-
             file.write(userData.toString());
             file.flush();
         } catch (IOException e) {
@@ -78,59 +407,21 @@ public class Engine {
         }
     }
 
-    private static void setOpenAiAPIKey() throws InterruptedException, TimeoutException {
+    private static void setOpenAiAPIKey() {
         TextEngine.printWithDelays("Please enter your OpenAI API key, or type 'n/a' if you do not have one.", true);
-        OpenAI_API_KEY = System.console().readLine();
-        if (OpenAI_API_KEY.equals("n/a")) {
+        openAIPromptEngine.setAPIKey(System.console().readLine());
+        if (openAIPromptEngine.getAPIKey().equals("n/a")) {
             AIon = false;
-            return;
         }
-        if (OpenAIPromptEngine.testAPIKey(OpenAI_API_KEY)) {
+        if (OpenAIPromptEngine.testAPIKey(openAIPromptEngine.getAPIKey())) {
             AIon = true;
-            openAIPromptEngine.setAIEnabled(AIon);
-        } else {
-            setOpenAiAPIKey();
-        }
-    }
-
-    private static void setLocation() throws InterruptedException {
-        String latitude;
-        String longitude;
-        while (true) {
-            TextEngine.printWithDelays("Would you like to turn on location based services? 'y' or 'n'", true);
-            if ("y".equals(console.readLine().trim().toLowerCase())) {
-                locationOn = true;
-                break;
-            }
-            TextEngine.printWithDelays("Location based services have been turned off", false);
+            TextEngine.printWithDelays("AI services enabled.", false);
             TextEngine.enterToNext();
-            locationOn = false;
-            return;
+        } else {
+            AIon = false;
+            TextEngine.printWithDelays("Invalid API key. AI services have been disabled.", false);
+            TextEngine.enterToNext();
         }
-        while (true) {
-            TextEngine.printWithDelays("Please enter your latitude.", true);
-            latitude = console.readLine();
-            TextEngine.printWithDelays("Please enter your longitude.", true);
-            longitude = console.readLine();
-            if (latitude == null || longitude == null) {
-                TextEngine.printWithDelays("Invalid input. Please try again.", true);
-            }
-            try {
-                float lat = Float.parseFloat(latitude);
-                float lon = Float.parseFloat(longitude);
-                if (lat > 90 || lat < -90 || lon > 180 || lon < -180) {
-                    TextEngine.printWithDelays("Invalid input. Please try again.", true);
-                    continue;
-                }
-                break;
-            } catch (NumberFormatException e) {
-                TextEngine.printWithDelays("Invalid input. Please try again.", true);
-            }
-        }
-        weatherAPIPromptEngine.setLatitude(latitude);
-        weatherAPIPromptEngine.setLongitude(longitude);
-        TextEngine.printWithDelays("Location successfully set. Latitude:" + weatherAPIPromptEngine.getLatitude() + " Longetude: " + weatherAPIPromptEngine.getLongitude(), false);
-        TextEngine.enterToNext();
     }
 
     private void weatherListener() {
@@ -150,7 +441,7 @@ public class Engine {
                     System.err.println("Thread Interrupted");
                 }
             }
-            weatherAPIPromptEngine.recallWeather();
+            weatherAPIPromptEngine.refreshWeather();
             weatherListener();
         }).start();
     }

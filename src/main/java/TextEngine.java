@@ -71,7 +71,8 @@ public abstract class TextEngine {
         }
     }
 
-    public static void printWithDelays(String data, boolean buffer) throws InterruptedException {
+    public static void printWithDelays(String data, boolean buffer) {
+        boolean needToBreak = false;
         // Use buffer if you are accepting input after the text is printed
         if (speedSetting.equals("NoDelay") || Engine.TESTING) {
             printNoDelay(data, buffer);
@@ -96,29 +97,35 @@ public abstract class TextEngine {
                 }
             }
             if (word.contains("\n")) {
-                currentLineWidth = 0;
+                needToBreak = true;
             }
             for (char ch : word.toCharArray()) {
                 if (String.valueOf(ch).matches("^[a-zA-Z0-9]+$") && !String.valueOf(ch).matches(" ")) {
-                    switch (speedSetting) {
-                        case "Slow" ->
-                            TimeUnit.MILLISECONDS.sleep(30);
-                        case "Fast" ->
-                            TimeUnit.MILLISECONDS.sleep(10);
-                        case "Normal" -> {
-                            TimeUnit.MILLISECONDS.sleep(20);
+                    try {
+                        switch (speedSetting) {
+                            case "Slow" ->
+                                TimeUnit.MILLISECONDS.sleep(30);
+                            case "Fast" ->
+                                TimeUnit.MILLISECONDS.sleep(10);
+                            case "Normal" -> {
+                                TimeUnit.MILLISECONDS.sleep(20);
+                            }
+                            default -> {
+                                //do nothing
+                            }
                         }
-                        default -> {
-                            //do nothing
-                        }
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
                     }
                 }
                 System.out.print(ch);
                 currentLineWidth++;
                 remainingChars.deleteCharAt(0); // Remove the printed character from remainingChars
-                if (ch == '\n') {
-                    currentLineWidth = 0;
-                }
+            }
+            if (needToBreak) {
+                System.out.print('\n');
+                currentLineWidth = 0;
+                needToBreak = false;
             }
             if (currentLineWidth > 0) {
                 System.out.print(' ');
@@ -145,6 +152,7 @@ public abstract class TextEngine {
      * text is printed.
      */
     public static void printNoDelay(String data, boolean buffer) { //use buffer is you are accepting input after the text is printed
+        boolean needToBreak = false;
         if (buffer) {
             data = data + yellowColor + " (press enter to type)" + resetColor;
         }
@@ -163,17 +171,20 @@ public abstract class TextEngine {
                 }
             }
             if (word.contains("\n")) {
-                currentLineWidth = 0;
+                needToBreak = true;
             }
             for (char ch : word.toCharArray()) {
                 System.out.print(ch);
                 currentLineWidth++;
-                if (ch == '\n') {
-                    currentLineWidth = 0;
-                }
             }
-            System.out.print(' '); // Print the space after the word
-            currentLineWidth++;
+            if (needToBreak) {
+                System.out.print('\n');
+                currentLineWidth = 0;
+                needToBreak = false;
+            } else {
+                System.out.print(' '); // Print the space after the word
+                currentLineWidth++;
+            }
         }
         if (data.charAt(data.length() - 1) != '\n' && !buffer) {
             System.out.print('\n');
@@ -202,7 +213,7 @@ public abstract class TextEngine {
                 System.out.flush();
             }
         } catch (final IOException e) {
-            //System.out.println("Error, No OS obtained: " + e.getMessage());
+            //do nothing
         }
     }
 
