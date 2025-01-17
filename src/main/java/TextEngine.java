@@ -33,7 +33,7 @@ public abstract class TextEngine {
      * uses the "tput cols" command. If the terminal width cannot be determined,
      * a default width of 80 is used.
      */
-    public static void setWidth() {
+    public static String setWidth() {
         try {
             String os = System.getProperty("os.name").toLowerCase();
             ProcessBuilder processBuilder;
@@ -59,15 +59,17 @@ public abstract class TextEngine {
                 line = reader.readLine();
             }
             if (line != null && !line.isEmpty()) {
-                System.out.println("Terminal width: " + line);
                 MAX_LINE_WIDTH = Integer.parseInt(line);
+                return ("Terminal width: " + line);
             } else {
                 System.out.println("Could not get the terminal width, using default value");
-                MAX_LINE_WIDTH = 80; // Default width if tput/mode con fails
+                MAX_LINE_WIDTH = 30; // Default width if tput/mode con fails
+                return ("Terminal width: " + "30");
             }
         } catch (IOException e) {
             System.out.println("Could not get the terminal width, using default value");
-            MAX_LINE_WIDTH = 80; // Default width if an exception occurs
+            MAX_LINE_WIDTH = 30; // Default width if an exception occurs
+            return ("Terminal width: " + "30");
         }
     }
 

@@ -73,7 +73,8 @@ public final class WeatherAPIPromptEngine {
                 timeDataLastGathered = System.currentTimeMillis();
                 return "Weather API connection successful. " + System.currentTimeMillis();
             } catch (IOException e) {
-                System.out.println("Weather API: " + System.currentTimeMillis() + "An error occurred while processing the request.");
+                System.out.println("Weather API: " + System.currentTimeMillis() + " An error occurred while processing the request.");
+                System.out.println(e);
                 return null;
             }
         });
@@ -84,7 +85,8 @@ public final class WeatherAPIPromptEngine {
             System.out.println("Weather API connection timed out. " + System.currentTimeMillis());
             return null;
         } catch (InterruptedException | ExecutionException e) {
-            System.out.println("Weather API: " + System.currentTimeMillis() + "An error occurred while processing the request.");
+            System.out.println("Weather API: " + System.currentTimeMillis() + " An error occurred while processing the request.");
+            System.out.println(e);
             return null;
         } finally {
             executor.shutdown();
@@ -120,7 +122,8 @@ public final class WeatherAPIPromptEngine {
             dataMap.put("windSpeed", values.optDouble("windSpeed"));
             return dataMap;
         } catch (JSONException e) {
-            System.out.println("Weather API: " + System.currentTimeMillis() + "An error occurred while processing the request.");
+            System.out.println("Weather API: " + System.currentTimeMillis() + " An error occurred while processing the recieved data.");
+            System.out.println(jsonResponse);
             return null;
         }
     }

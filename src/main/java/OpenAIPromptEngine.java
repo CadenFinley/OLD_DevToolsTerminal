@@ -27,6 +27,7 @@ public class OpenAIPromptEngine {
     private String lastPromptUsed = "";
     private String lastResponseReceived = "";
     private final List<String> chatCache;
+    private boolean useCache = true;
 
     /**
      * Constructs a PromptEngine object with the specified API key.
@@ -91,7 +92,7 @@ public class OpenAIPromptEngine {
             String apiKey = USER_API_KEY; // API key goes here
             String model = "gpt-3.5-turbo";
             String sentMessage;
-            if (!lastPromptUsed.equals("")) {
+            if (useCache && !lastPromptUsed.equals("")) {
                 sentMessage = "These are the previous messages: " + chatCache.toString() + "This is the users responce based on the previous conversation: " + message;
             } else {
                 sentMessage = message;
@@ -122,7 +123,6 @@ public class OpenAIPromptEngine {
                 return lastResponseReceived;
             } catch (IOException e) {
                 System.out.println("OpenAI API connection failed. Please check your internet connection and try again later. " + System.currentTimeMillis());
-                System.out.println("OpenAI: " + System.currentTimeMillis() + " AI generation has been disabled.");
                 return null;
             }
         });
@@ -131,7 +131,6 @@ public class OpenAIPromptEngine {
         } catch (TimeoutException e) {
             future.cancel(true);
             System.out.println("OpenAI API connection timed out." + System.currentTimeMillis());
-            System.out.println("OpenAI: " + System.currentTimeMillis() + " AI generation has been disabled. You can renable it in settings.");
             return null;
         } catch (InterruptedException | ExecutionException e) {
             System.out.println("OpenAI: " + System.currentTimeMillis() + " An error occurred while processing the request.");
@@ -256,5 +255,13 @@ public class OpenAIPromptEngine {
     public void setChatCache(List<String> chatCache) {
         this.chatCache.clear();
         this.chatCache.addAll(chatCache);
+    }
+
+    public boolean isUseCache() {
+        return useCache;
+    }
+
+    public void setUseCache(boolean useCache) {
+        this.useCache = useCache;
     }
 }

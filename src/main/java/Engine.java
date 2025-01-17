@@ -30,7 +30,6 @@ public class Engine {
     private static final Engine ENGINE_SERVICE = new Engine();
     private static boolean weatherRefresh = true;
     private static boolean locationOn = false;
-    private static boolean AIon = false;
     private static Queue<String> commandsQueue = null;
     private static String lastCommandParsed = null;
 
@@ -63,15 +62,29 @@ public class Engine {
         } else {
             loadUserData();
         }
+        if (OpenAIPromptEngine.testAPIKey(openAIPromptEngine.getAPIKey()) && openAIPromptEngine.getAPIKey() != null) {
+            TextEngine.printWithDelays(AI_CHAT_HEADER + "Successfully Connected to OpenAI servers!", false);
+        } else {
+            TextEngine.printWithDelays(AI_CHAT_HEADER + "An error occurred while connecting to OpenAI servers.", false);
+            TextEngine.printWithDelays(AI_CHAT_HEADER + "Please check your internet connection and try again later.", false);
+            TextEngine.enterToNext();
+            return;
+        }
         if (!startupCommands.isEmpty()) {
             startupMode = true;
             System.out.println("Running startup commands...");
             for (String command : startupCommands) {
-                commandParser(command);
+                commandParser("." + command);
             }
             startupMode = false;
         }
-        TextEngine.clearScreen();
+        if (!openAIPromptEngine.getChatCache().isEmpty()) {
+            System.out.println("Chat history:");
+            for (String message : openAIPromptEngine.getChatCache()) {
+                TextEngine.printNoDelay(message, false);
+                System.out.println();
+            }
+        }
         while (true) {
             if (weatherRefresh && locationOn) {
                 ENGINE_SERVICE.weatherListener();
@@ -79,7 +92,7 @@ public class Engine {
             if (TESTING) {
                 System.out.println("Testing mode is enabled.");
             }
-            TextEngine.printWithDelays(MAIN_MENU_HEADER + "Please enter a command.", true);
+            TextEngine.printWithDelays(MAIN_MENU_HEADER, true);
             String command = console.readLine();
             commandParser(command);
         }
@@ -89,7 +102,6 @@ public class Engine {
         try {
             JSONObject userData = new JSONObject(Files.readString(USER_DATA.toPath()));
             openAIPromptEngine.setAPIKey(userData.getString("OpenAI_API_KEY"));
-            AIon = userData.getBoolean("Ai_Enabled");
             locationOn = userData.getBoolean("Location_Enable");
             weatherAPIPromptEngine.setLatitude(userData.getString("latitude"));
             weatherAPIPromptEngine.setLongitude(userData.getString("longitude"));
@@ -109,7 +121,6 @@ public class Engine {
             userData.put("OpenAI_API_KEY", openAIPromptEngine.getAPIKey());
             userData.put("latitude", weatherAPIPromptEngine.getLatitude());
             userData.put("longitude", weatherAPIPromptEngine.getLongitude());
-            userData.put("Ai_Enabled", AIon);
             userData.put("Location_Enable", locationOn);
             userData.put("Chat_Cache", savedChatCache);
             userData.put("Startup_Commands", startupCommands);
@@ -134,10 +145,24 @@ public class Engine {
     }
 
     private static void commandParser(String command) {
-        if (command == null) {
+        if (command == null || command.isEmpty()) {
             TextEngine.printWithDelays("Invalid input. Please try again.", true);
             return;
         }
+        if (command.equals("exit")) {
+            commandProcesser("exit");
+        }
+        if (command.equals("help")) {
+            commandProcesser("help");
+        }
+        if (command.startsWith(".")) {
+            commandProcesser(command.substring(1));
+            return;
+        }
+        chatProcess(command);
+    }
+
+    private static void commandProcesser(String command) {
         commandsQueue = new LinkedList<>();
         commandsQueue.addAll(Arrays.asList(command.split(" ")));
         if (TESTING) {
@@ -175,7 +200,12 @@ public class Engine {
                         TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
                         return;
                     }
-                    TextEngine.printWithDelays(weatherAPIPromptEngine.getWeatherDataPart(lastCommandParsed), false);
+                    String recievedWeatherData = weatherAPIPromptEngine.getWeatherDataPart(lastCommandParsed);
+                    if (recievedWeatherData == null || recievedWeatherData.isEmpty() || recievedWeatherData.equals("No weather data available.") || lastCommandParsed.equals("all")) {
+                        TextEngine.printWithDelays(recievedWeatherData, false);
+                        return;
+                    }
+                    TextEngine.printWithDelays("The current " + lastCommandParsed + " is " + recievedWeatherData, false);
                     return;
                 }
                 if (lastCommandParsed.equals("autorefresh")) {
@@ -226,26 +256,6 @@ public class Engine {
                     TextEngine.printWithDelays("Commands: chat, enable, disable", false);
                     return;
                 }
-                if (lastCommandParsed.equals("enable")) {
-                    System.out.println("AI services are enabled.");
-                    AIon = true;
-                    getNextCommand();
-                    if (lastCommandParsed == null) {
-                        return;
-                    }
-                    if (openAIPromptEngine.getAPIKey() == null && !lastCommandParsed.equals("set")) {
-                        System.out.println("API key not set.");
-                        return;
-                    }
-                }
-                if (lastCommandParsed.equals("disable")) {
-                    AIon = false;
-                    System.out.println("AI services are disabled.");
-                    getNextCommand();
-                    if (lastCommandParsed == null) {
-                        return;
-                    }
-                }
                 if (lastCommandParsed.equals("set")) {
                     getNextCommand();
                     if (lastCommandParsed == null) {
@@ -263,7 +273,6 @@ public class Engine {
                             System.out.println("OpenAI API key set.");
                             return;
                         } else {
-                            AIon = false;
                             TextEngine.printWithDelays("Invalid API key. AI services have been disabled", false);
                             return;
                         }
@@ -280,7 +289,15 @@ public class Engine {
                     return;
                 }
                 if (lastCommandParsed.equals("chat")) {
-                    chatProcess();
+                    getNextCommand();
+                    if (lastCommandParsed == null) {
+                        TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                        return;
+                    }
+                    if (startupMode) {
+                        TextEngine.printWithDelays(clockEngine.timeStamp() + " Sent message to GPT: " + lastCommandParsed, false);
+                    }
+                    chatProcess(lastCommandParsed);
                     return;
                 }
                 TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
@@ -303,7 +320,6 @@ public class Engine {
                     }
                     if (lastCommandParsed.equals("enable")) {
                         locationOn = true;
-                        weatherAPIPromptEngine.refreshWeather();
                         TextEngine.printWithDelays("Location based services have been enabled.", false);
                         getNextCommand();
                         if (lastCommandParsed == null) {
@@ -337,6 +353,67 @@ public class Engine {
                     }
                     TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
                 }
+                if (lastCommandParsed.equals("chat")) {
+                    getNextCommand();
+                    if (lastCommandParsed == null) {
+                        TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                        return;
+                    }
+                    if (lastCommandParsed.equals("history")) {
+                        getNextCommand();
+                        if (lastCommandParsed == null) {
+                            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                            return;
+                        }
+                        if (lastCommandParsed.equals("disable")) {
+                            incognitoChatMode = true;
+                            savedChatCache = new ArrayList<>();
+                            openAIPromptEngine.setChatCache(savedChatCache);
+                            TextEngine.printNoDelay("Incognito mode enabled.", false);
+                            return;
+                        }
+                        if (lastCommandParsed.equals("enable")) {
+                            incognitoChatMode = false;
+                            TextEngine.printNoDelay("Incognito mode disabled.", false);
+                            return;
+                        }
+                        if (lastCommandParsed.equals("save")) {
+                            savedChatCache = openAIPromptEngine.getChatCache();
+                            TextEngine.printWithDelays("Chat history saved.", false);
+                            return;
+                        }
+                        if (lastCommandParsed.equals("clear")) {
+                            openAIPromptEngine.clearChatCache();
+                            savedChatCache = new ArrayList<>();
+                            TextEngine.printWithDelays("Chat history cleared.", false);
+                            return;
+                        }
+                    }
+                    if (lastCommandParsed.equals("cache")) {
+                        getNextCommand();
+                        if (lastCommandParsed == null) {
+                            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                            return;
+                        }
+                        if (lastCommandParsed.equals("enable")) {
+                            openAIPromptEngine.setUseCache(true);
+                            TextEngine.printWithDelays("Chat cache enabled.", false);
+                            return;
+                        }
+                        if (lastCommandParsed.equals("disable")) {
+                            openAIPromptEngine.setUseCache(false);
+                            TextEngine.printWithDelays("Chat cache disabled.", false);
+                            return;
+                        }
+                        if (lastCommandParsed.equals("clear")) {
+                            openAIPromptEngine.clearChatCache();
+                            savedChatCache = new ArrayList<>();
+                            TextEngine.printWithDelays("Chat history cleared.", false);
+                            return;
+                        }
+                    }
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                }
                 TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
             }
             case "exit" ->
@@ -348,73 +425,15 @@ public class Engine {
         }
     }
 
-    private static void chatProcess() {
-        TextEngine.clearScreen();
-        if (!AIon) {
-            TextEngine.printWithDelays(AI_CHAT_HEADER + "AI services are disabled. Please enable them to use this feature.", false);
-            TextEngine.enterToNext();
+    private static void chatProcess(String message) {
+        System.out.println();
+        if (message == null || message.isEmpty()) {
+            TextEngine.printWithDelays(AI_CHAT_HEADER + "Invalid input. Please try again.", false);
             return;
         }
-        TextEngine.printNoDelay("Loading...", false);
-        if (OpenAIPromptEngine.testAPIKey(openAIPromptEngine.getAPIKey())) {
-            TextEngine.clearScreen();
-            TextEngine.printWithDelays(AI_CHAT_HEADER + "Successfully Connected to OpenAI servers!", false);
-            if (!openAIPromptEngine.getChatCache().isEmpty()) {
-                System.out.println("Chat history:");
-                for (String message : openAIPromptEngine.getChatCache()) {
-                    TextEngine.printNoDelay(message, false);
-                    System.out.println();
-                }
-            }
-        } else {
-            TextEngine.clearScreen();
-            AIon = false;
-            TextEngine.printWithDelays(AI_CHAT_HEADER + "An error occurred while connecting to OpenAI servers.", false);
-            TextEngine.printWithDelays(AI_CHAT_HEADER + "Please check your internet connection and try again later.", false);
-            TextEngine.enterToNext();
-            return;
-        }
-        while (true) {
-            TextEngine.printWithDelays(AI_CHAT_HEADER, true);
-            String message = console.readLine();
-            System.out.println();
-            if (message == null || message.isEmpty()) {
-                TextEngine.printWithDelays(AI_CHAT_HEADER + "Invalid input. Please try again.", false);
-                continue;
-            }
-            if (message.equals("exit")) {
-                if (openAIPromptEngine.getChatCache().isEmpty()) {
-                    TextEngine.printWithDelays(AI_CHAT_HEADER + "Exiting chat.", false);
-                    TextEngine.clearScreen();
-                    return;
-                }
-                TextEngine.printWithDelays(AI_CHAT_HEADER + "Would you like to save the chat history? 'y' or 'n'", true);
-                if ("y".equals(console.readLine().trim().toLowerCase())) {
-                    savedChatCache = openAIPromptEngine.getChatCache();
-                    TextEngine.printWithDelays(AI_CHAT_HEADER + "Chat history saved.", false);
-                    TextEngine.clearScreen();
-                    return;
-                } else {
-                    openAIPromptEngine.clearChatCache();
-                    savedChatCache = new ArrayList<>();
-                    TextEngine.printWithDelays(AI_CHAT_HEADER + "Chat history cleared.", false);
-                    TextEngine.clearScreen();
-                    return;
-                }
-            }
-            if (message.equals("help")) {
-                TextEngine.printWithDelays(AI_CHAT_HEADER + "Commands: exit, help, new chat", false);
-                continue;
-            }
-            if (message.equals("new chat")) {
-                chatProcess();
-                openAIPromptEngine.clearChatCache();
-                savedChatCache = new ArrayList<>();
-            }
-            String response = openAIPromptEngine.buildPromptAndReturnResponce(message);
-            TextEngine.printWithDelays(GREEN_COLOR_BOLD + "ChatGPT: " + RESET_COLOR + response, false);
-            System.out.println();
-        }
+        String response = openAIPromptEngine.buildPromptAndReturnResponce(message);
+        TextEngine.printWithDelays(GREEN_COLOR_BOLD + "ChatGPT: " + RESET_COLOR + response, false);
+        System.out.println();
     }
 
     private static void getNextCommand() {
@@ -429,6 +448,22 @@ public class Engine {
     }
 
     private static void exit() {
+        if (!incognitoChatMode) {
+            if (!openAIPromptEngine.getChatCache().isEmpty()) {
+                TextEngine.printWithDelays(AI_CHAT_HEADER + "Would you like to save the chat history? 'y' or 'n'", true);
+                if ("y".equals(console.readLine().trim().toLowerCase())) {
+                    savedChatCache = openAIPromptEngine.getChatCache();
+                    TextEngine.printWithDelays(AI_CHAT_HEADER + "Chat history saved.", false);
+                } else {
+                    openAIPromptEngine.clearChatCache();
+                    savedChatCache = new ArrayList<>();
+                    TextEngine.printWithDelays(AI_CHAT_HEADER + "Chat history cleared.", false);
+                }
+            }
+        } else {
+            openAIPromptEngine.clearChatCache();
+            savedChatCache = new ArrayList<>();
+        }
         writeUserData();
         TextEngine.printWithDelays("Exiting...", false);
         TextEngine.clearScreen();
@@ -439,7 +474,7 @@ public class Engine {
         if (!weatherRefresh) {
             return;
         }
-        clockEngine.startClock(900);
+        clockEngine.startClock(60 * 15);
         new Thread(() -> {
             while (clockEngine.isRunning()) {
                 try {
