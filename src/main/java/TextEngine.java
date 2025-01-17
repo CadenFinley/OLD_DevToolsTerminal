@@ -161,11 +161,6 @@ public abstract class TextEngine {
      */
     public static void printNoDelay(String data, boolean buffer) { //use buffer is you are accepting input after the text is printed
         boolean needToBreak = false;
-        // Use buffer if you are accepting input after the text is printed
-        if (speedSetting.equals("nodelay") || Engine.TESTING) {
-            printNoDelay(data, buffer);
-            return;
-        }
         if (buffer) {
             data = data + yellowColor + " (press enter to type)" + resetColor;
         }

@@ -28,33 +28,22 @@ import org.json.JSONObject;
  */
 public class OpenAIPromptEngine {
 
-    private String USER_API_KEY = null;
+    private String USER_API_KEY = "";
     private String lastPromptUsed = "";
     private String lastResponseReceived = "";
     private final List<String> chatCache;
     private boolean useCache = true;
     private Map<String, Object> responseDataMap;
 
-    /**
-     * Constructs a PromptEngine object with the specified API key.
-     */
     public OpenAIPromptEngine(String apiKey) {
         this.USER_API_KEY = apiKey;
         chatCache = new ArrayList<>();
     }
 
-    /**
-     * Constructs a PromptEngine object.
-     */
     public OpenAIPromptEngine() {
         chatCache = new ArrayList<>();
     }
 
-    /**
-     * The function `buildAndReturnPrompt` generates a prompt for the OpenAI API
-     *
-     * @param message
-     */
     public String buildPromptAndReturnResponce(String message) {
         if (USER_API_KEY == null) {
             return "API key not set.";
@@ -70,12 +59,6 @@ public class OpenAIPromptEngine {
         return response;
     }
 
-    /**
-     * The function `buildPromptAndReturnNoResponce` generates a prompt for the
-     * OpenAI API without returning a response.
-     *
-     * @param message
-     */
     public void buildPromptAndReturnNoResponce(String message) {
         if (USER_API_KEY == null) {
             System.out.println("OpenAI: " + System.currentTimeMillis() + "API key not set.");
@@ -84,18 +67,6 @@ public class OpenAIPromptEngine {
         chatGPT(message);
     }
 
-    /**
-     * The function `chatGPT` sends a message to the OpenAI API for chat
-     * completions using a specified model and API key, and returns the
-     * extracted content from the response.
-     *
-     * @param message The `chatGPT` method you provided is a Java method that
-     * interacts with the OpenAI GPT-3.5 API to generate chat completions based
-     * on the input message.
-     * @return The `chatGPT` method returns the extracted contents of the
-     * response from the OpenAI API after processing the input message through
-     * the GPT-3.5 model.
-     */
     private String chatGPT(String message) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<String> future = executor.submit(() -> {
@@ -153,12 +124,6 @@ public class OpenAIPromptEngine {
         }
     }
 
-    /**
-     * Parses the provided JSON response into a HashMap.
-     *
-     * @param jsonResponse The JSON response to parse.
-     * @return A HashMap containing the parsed data.
-     */
     private Map<String, Object> parseJSONResponse(String jsonResponse) {
         Map<String, Object> responseData = new HashMap<>();
         try {
@@ -172,12 +137,6 @@ public class OpenAIPromptEngine {
         return responseData;
     }
 
-    /**
-     * Extracts the "content" field from the provided JSON string.
-     *
-     * @param jsonResponse The JSON response string.
-     * @return The content field as a string, or null if not found.
-     */
     private String extractContentFromJSON(String jsonResponse) {
         try {
             JSONObject jsonObject = new JSONObject(jsonResponse);
@@ -191,20 +150,6 @@ public class OpenAIPromptEngine {
         }
     }
 
-    /**
-     * The function `testAPIKey` sends a test message to an API endpoint using
-     * the provided API key and checks if a valid response is received.
-     *
-     * @param apiKey The `testAPIKey` method you provided is used to test the
-     * validity of an API key by making a request to the OpenAI API endpoint.
-     * The `apiKey` parameter is the API key that is passed to the method for
-     * testing.
-     * @return The `testAPIKey` method returns a boolean value. If the API key
-     * is valid and the response from the API contains expected content, it
-     * returns `true`. If there is an IOException (e.g., internet connection
-     * issue) or the response does not contain the expected content, it returns
-     * `false`.
-     */
     public boolean testAPIKey(String apiKey) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executor.submit(() -> {
@@ -236,44 +181,18 @@ public class OpenAIPromptEngine {
         }
     }
 
-    /**
-     * The function `setAPIKey` sets the user's API key for the OpenAI API.
-     *
-     * @param apiKey The `
-     * @throws TimeoutException
-     *
-     */
     public void setAPIKey(String apiKey) {
         this.USER_API_KEY = apiKey;
     }
 
-    /**
-     * The function `getAPIKey` returns the user's API key for the OpenAI API.
-     *
-     * @return The `getAPIKey` method returns the user's API key for the OpenAI
-     * API as a String.
-     */
     public String getAPIKey() {
         return USER_API_KEY;
     }
 
-    /**
-     * The function `getLastPromptUsed` returns the last prompt used.
-     *
-     * @return The `getLastPromptUsed` method returns the last prompt used as a
-     * String.
-     */
     public String getLastPromptUsed() {
         return lastPromptUsed;
     }
 
-    /**
-     * The function `getLastResponseReceived` returns the last response
-     * received.
-     *
-     * @return The `getLastResponseReceived` method returns the last response
-     * received as a String.
-     */
     public String getLastResponseReceived() {
         return lastResponseReceived;
     }
