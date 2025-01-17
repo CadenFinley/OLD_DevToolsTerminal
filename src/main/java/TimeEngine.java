@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
  * @author Caden Finley
  * @version 1.0
  */
-public class ClockEngine {
+public class TimeEngine {
 
     private boolean running = false;
     private long timeElapsedInSeconds = 0;
@@ -28,7 +28,7 @@ public class ClockEngine {
      *
      * @param type the type of the clock engine
      */
-    public ClockEngine(String type, Object trigger) {
+    public TimeEngine(String type, Object trigger) {
         this.running = false;
         this.whatAmI = type;
         this.trigger = trigger;

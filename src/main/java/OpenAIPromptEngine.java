@@ -19,7 +19,7 @@ import java.util.concurrent.TimeoutException;
  * The PromptEngine class generates prompts using an OpenAI API key.
  *
  * @author Caden Finley
- * @version 1.0
+ * @version 2.0
  */
 public class OpenAIPromptEngine {
 

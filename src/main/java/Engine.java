@@ -25,7 +25,7 @@ public class Engine {
 
     private static WeatherAPIPromptEngine weatherAPIPromptEngine;
     private static OpenAIPromptEngine openAIPromptEngine;
-    private static ClockEngine clockEngine;
+    private static TimeEngine clockEngine;
 
     private static final Engine ENGINE_SERVICE = new Engine();
     private static boolean weatherRefresh = true;
@@ -53,7 +53,7 @@ public class Engine {
         TextEngine.setWidth();
         weatherAPIPromptEngine = new WeatherAPIPromptEngine();
         openAIPromptEngine = new OpenAIPromptEngine();
-        clockEngine = new ClockEngine("timer", ENGINE_SERVICE);
+        clockEngine = new TimeEngine("timer", ENGINE_SERVICE);
         if (!USER_DATA.exists()) {
             try {
                 USER_DATA.createNewFile();
