@@ -60,9 +60,14 @@ public class TerminalPassthrough {
                 processBuilder.directory(new java.io.File(currentDirectory));
                 Process process = processBuilder.start();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
                 String line;
                 while ((line = reader.readLine()) != null) {
                     System.out.println(line);
+                    outputted = true;
+                }
+                while ((line = errorReader.readLine()) != null) {
+                    System.err.println(line);
                     outputted = true;
                 }
                 if (!outputted) {
