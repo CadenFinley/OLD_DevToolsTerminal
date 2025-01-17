@@ -26,20 +26,21 @@ public class OpenAIPromptEngine {
     private String USER_API_KEY = null;
     private String lastPromptUsed = "";
     private String lastResponseReceived = "";
-    List<String> chatCache = new ArrayList<>();
+    private final List<String> chatCache;
 
     /**
      * Constructs a PromptEngine object with the specified API key.
      */
     public OpenAIPromptEngine(String apiKey) {
         this.USER_API_KEY = apiKey;
+        chatCache = new ArrayList<>();
     }
 
     /**
      * Constructs a PromptEngine object.
      */
     public OpenAIPromptEngine() {
-        // Do nothing
+        chatCache = new ArrayList<>();
     }
 
     /**
@@ -53,7 +54,7 @@ public class OpenAIPromptEngine {
         }
         String response = chatGPT(message);
         chatCache.add("User: " + message);
-        chatCache.add("ChatGPT: " + message);
+        chatCache.add("ChatGPT: " + response);
         return response;
     }
 
@@ -246,5 +247,14 @@ public class OpenAIPromptEngine {
 
     public List<String> getChatCache() {
         return chatCache;
+    }
+
+    public void clearChatCache() {
+        chatCache.clear();
+    }
+
+    public void setChatCache(List<String> chatCache) {
+        this.chatCache.clear();
+        this.chatCache.addAll(chatCache);
     }
 }

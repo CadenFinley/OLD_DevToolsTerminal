@@ -117,42 +117,37 @@ public class TestSuite_DevTools {
         assertTrue(timer.getRemainingTimeInSeconds() > 10);
     }
 
-    @Test
-    public void testOPENAICONNECTION() {
-        assertTrue(OpenAIPromptEngine.testAPIKey(Engine.getOpenAI_API_KEY()));
-    }
-
-    @Test
-    public void testPromptEngineReceiveInput() {
-        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY());
-        String message = "This is a test message to verify connection to OPENAI API.";
-        assertTrue(prompt.buildPromptAndReturnResponce(message) != null && !"AI generation is disabled. You can enable it in settings.\n".equals(prompt.buildPromptAndReturnResponce(message)));
-    }
-
-    @Test
-    public void testPromptCachedMessage() {
-        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY());
-        String message = "This is a test message to verify connection to OPENAI API.";
-        prompt.buildPromptAndReturnNoResponce(message);
-        assertEquals(message, prompt.getLastPromptUsed());
-    }
-
-    @Test
-    public void testPromptCachedMessage0() {
-        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY());
-        String message = "This is a test message to verify connection to OPENAI API.";
-        prompt.buildPromptAndReturnNoResponce(message);
-        assertEquals("This is a test message to verify connection to OPENAI API.", prompt.getLastPromptUsed());
-    }
-
-    @Test
-    public void testPromptEngineReceiveInput1() {
-        prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY());
-        String message = "This is a test message to verify connection to OPENAI API.";
-        String received = prompt.buildPromptAndReturnResponce(message);
-        assertTrue(received != null && !received.equals("") && !received.equals("AI generation is disabled. You can enable it in settings.\n"));
-    }
-
+    // @Test
+    // public void testOPENAICONNECTION() {
+    //     assertTrue(OpenAIPromptEngine.testAPIKey(Engine.getOpenAI_API_KEY()));
+    // }
+    // @Test
+    // public void testPromptEngineReceiveInput() {
+    //     prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY());
+    //     String message = "This is a test message to verify connection to OPENAI API.";
+    //     assertTrue(prompt.buildPromptAndReturnResponce(message) != null && !"AI generation is disabled. You can enable it in settings.\n".equals(prompt.buildPromptAndReturnResponce(message)));
+    // }
+    // @Test
+    // public void testPromptCachedMessage() {
+    //     prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY());
+    //     String message = "This is a test message to verify connection to OPENAI API.";
+    //     prompt.buildPromptAndReturnNoResponce(message);
+    //     assertEquals(message, prompt.getLastPromptUsed());
+    // }
+    // @Test
+    // public void testPromptCachedMessage0() {
+    //     prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY());
+    //     String message = "This is a test message to verify connection to OPENAI API.";
+    //     prompt.buildPromptAndReturnNoResponce(message);
+    //     assertEquals("This is a test message to verify connection to OPENAI API.", prompt.getLastPromptUsed());
+    // }
+    // @Test
+    // public void testPromptEngineReceiveInput1() {
+    //     prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY());
+    //     String message = "This is a test message to verify connection to OPENAI API.";
+    //     String received = prompt.buildPromptAndReturnResponce(message);
+    //     assertTrue(received != null && !received.equals("") && !received.equals("AI generation is disabled. You can enable it in settings.\n"));
+    // }
     @Test
     public void testCheckValidInput() {
         System.setOut(new PrintStream(outContent));

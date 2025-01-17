@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 import org.json.JSONObject;
@@ -17,9 +19,11 @@ public class Engine {
 
     private static final Console console = System.console();
     public static boolean TESTING = false;
+
     private static WeatherAPIPromptEngine weatherAPIPromptEngine;
     private static OpenAIPromptEngine openAIPromptEngine;
     private static ClockEngine clockEngine;
+
     private static final Engine ENGINE_SERVICE = new Engine();
     private static boolean weatherRefresh = true;
     private static boolean locationOn = false;
@@ -32,9 +36,10 @@ public class Engine {
 
     private static final String MAIN_MENU_HEADER = GREEN_COLOR_BOLD + "Main Menu: " + RESET_COLOR;
     private static final String AI_CHAT_HEADER = GREEN_COLOR_BOLD + "AI Chat: " + RESET_COLOR;
-    private static final String SETUP_HEADER = GREEN_COLOR_BOLD + "Setup: " + RESET_COLOR;
 
     private static final File USER_DATA = new File("userData.json");
+
+    private static List<String> savedChatCache = new ArrayList<>();
 
     public static String getOSName() {
         return System.getProperty("os.name");
@@ -47,18 +52,25 @@ public class Engine {
         if (TESTING) {
             System.out.println("Testing mode is enabled.");
         }
+
         weatherAPIPromptEngine = new WeatherAPIPromptEngine();
         openAIPromptEngine = new OpenAIPromptEngine();
+        clockEngine = new ClockEngine("timer", ENGINE_SERVICE);
+
         TextEngine.clearScreen();
         if (!USER_DATA.exists()) {
-            firstBoot();
+            try {
+                USER_DATA.createNewFile();
+            } catch (IOException e) {
+                TextEngine.printWithDelays(MAIN_MENU_HEADER + "An error occurred while creating the user data file.", false);
+            }
         } else {
             loadUserData();
         }
         if (locationOn) {
             ENGINE_SERVICE.weatherListener();
         }
-        TextEngine.printWithDelays(MAIN_MENU_HEADER + "Welcome back!", false);
+        TextEngine.clearScreen();
         while (true) {
             TextEngine.printWithDelays(MAIN_MENU_HEADER + "Please enter a command.", true);
             String command = console.readLine();
@@ -74,6 +86,9 @@ public class Engine {
             locationOn = userData.getBoolean("Location_Enable");
             weatherAPIPromptEngine.setLatitude(userData.getString("latitude"));
             weatherAPIPromptEngine.setLongitude(userData.getString("longitude"));
+            savedChatCache = new ArrayList<>();
+            userData.getJSONArray("Chat_Cache").forEach(item -> savedChatCache.add((String) item));
+            openAIPromptEngine.setChatCache(savedChatCache);
         } catch (IOException e) {
             TextEngine.printWithDelays("An error occurred while reading the user data file.", false);
         }
@@ -277,6 +292,12 @@ public class Engine {
         if (OpenAIPromptEngine.testAPIKey(openAIPromptEngine.getAPIKey())) {
             TextEngine.clearScreen();
             TextEngine.printWithDelays(AI_CHAT_HEADER + "Successfully Connected to OpenAI servers!", false);
+            if (!openAIPromptEngine.getChatCache().isEmpty()) {
+                for (String message : openAIPromptEngine.getChatCache()) {
+                    TextEngine.printNoDelay(message, false);
+                    System.out.println();
+                }
+            }
         } else {
             TextEngine.clearScreen();
             AIon = false;
@@ -289,14 +310,28 @@ public class Engine {
             TextEngine.printWithDelays(AI_CHAT_HEADER, true);
             String message = console.readLine();
             System.out.println();
-            if (message == null) {
+            if (message == null || message.isEmpty()) {
                 TextEngine.printWithDelays(AI_CHAT_HEADER + "Invalid input. Please try again.", false);
-                return;
+                continue;
             }
             if (message.equals("exit")) {
-                TextEngine.printWithDelays(AI_CHAT_HEADER + "Exiting chat.", false);
-                TextEngine.clearScreen();
-                return;
+                if (openAIPromptEngine.getChatCache().isEmpty()) {
+                    TextEngine.printWithDelays(AI_CHAT_HEADER + "Exiting chat.", false);
+                    TextEngine.clearScreen();
+                    return;
+                }
+                TextEngine.printWithDelays(AI_CHAT_HEADER + "Would you like to save the chat history? 'y' or 'n'", true);
+                if ("y".equals(console.readLine().trim().toLowerCase())) {
+                    savedChatCache = openAIPromptEngine.getChatCache();
+                    TextEngine.printWithDelays(AI_CHAT_HEADER + "Chat history saved.", false);
+                    TextEngine.clearScreen();
+                    return;
+                } else {
+                    openAIPromptEngine.clearChatCache();
+                    TextEngine.printWithDelays(AI_CHAT_HEADER + "Chat history cleared.", false);
+                    TextEngine.clearScreen();
+                    return;
+                }
             }
             if (message.equals("help")) {
                 TextEngine.printWithDelays(AI_CHAT_HEADER + "Commands: exit, help, new chat", false);
@@ -304,6 +339,7 @@ public class Engine {
             }
             if (message.equals("new chat")) {
                 chatProcess();
+                openAIPromptEngine.clearChatCache();
             }
             String response = openAIPromptEngine.buildPromptAndReturnResponce(message);
             TextEngine.printWithDelays(GREEN_COLOR_BOLD + "ChatGPT: " + RESET_COLOR + response, false);
@@ -314,6 +350,9 @@ public class Engine {
     private static String readAndReturnUserDataFile() {
         try {
             String userData = Files.readString(USER_DATA.toPath());
+            if (userData == null || userData.isEmpty()) {
+                return "No data found.";
+            }
             return userData;
         } catch (IOException e) {
             TextEngine.printWithDelays("An error occurred while reading the user data file.", false);
@@ -339,59 +378,6 @@ public class Engine {
         System.exit(0);
     }
 
-    private static void firstBoot() {
-        TextEngine.printWithDelays(SETUP_HEADER + "Welcome!", false);
-        TextEngine.printWithDelays(SETUP_HEADER + "This is your first time using this program.", false);
-        setOpenAiAPIKey();
-        while (true) {
-            TextEngine.printWithDelays(SETUP_HEADER + "Would you like to turn on location based services? 'y' or 'n'", true);
-            if ("y".equals(console.readLine().trim().toLowerCase())) {
-                locationOn = true;
-                break;
-            }
-            TextEngine.printWithDelays(SETUP_HEADER + "Location based services have been turned off", false);
-            TextEngine.enterToNext();
-            locationOn = false;
-            return;
-        }
-        String latitude;
-        String longitude;
-        if (!locationOn) {
-            return;
-        }
-        while (true) {
-            TextEngine.printWithDelays(SETUP_HEADER + "Please enter your latitude.", true);
-            latitude = console.readLine();
-            TextEngine.printWithDelays(SETUP_HEADER + "Please enter your longitude.", true);
-            longitude = console.readLine();
-            if (latitude == null || longitude == null) {
-                TextEngine.printWithDelays(SETUP_HEADER + "Invalid input. Please try again.", false);
-            }
-            try {
-                float lat = Float.parseFloat(latitude);
-                float lon = Float.parseFloat(longitude);
-                if (lat > 90 || lat < -90 || lon > 180 || lon < -180) {
-                    TextEngine.printWithDelays(SETUP_HEADER + "Invalid input. Please try again.", false);
-                    continue;
-                }
-                break;
-            } catch (NumberFormatException e) {
-                TextEngine.printWithDelays(SETUP_HEADER + "Invalid input. Please try again.", false);
-            }
-        }
-        weatherAPIPromptEngine.setLatitude(latitude);
-        weatherAPIPromptEngine.setLongitude(longitude);
-        TextEngine.printWithDelays(SETUP_HEADER + "Location successfully set. Latitude: " + weatherAPIPromptEngine.getLatitude() + " Longetude: " + weatherAPIPromptEngine.getLongitude(), false);
-        TextEngine.enterToNext();
-        try {
-            USER_DATA.createNewFile();
-            writeUserData();
-        } catch (IOException e) {
-            TextEngine.printWithDelays(SETUP_HEADER + "An error occurred while creating the user data file.", false);
-            System.exit(1);
-        }
-    }
-
     private static void writeUserData() {
         try (FileWriter file = new FileWriter(USER_DATA)) {
             JSONObject userData = new JSONObject();
@@ -400,6 +386,7 @@ public class Engine {
             userData.put("longitude", weatherAPIPromptEngine.getLongitude());
             userData.put("Ai_Enabled", AIon);
             userData.put("Location_Enable", locationOn);
+            userData.put("Chat_Cache", savedChatCache);
             file.write(userData.toString());
             file.flush();
         } catch (IOException e) {
@@ -407,28 +394,10 @@ public class Engine {
         }
     }
 
-    private static void setOpenAiAPIKey() {
-        TextEngine.printWithDelays("Please enter your OpenAI API key, or type 'n/a' if you do not have one.", true);
-        openAIPromptEngine.setAPIKey(System.console().readLine());
-        if (openAIPromptEngine.getAPIKey().equals("n/a")) {
-            AIon = false;
-        }
-        if (OpenAIPromptEngine.testAPIKey(openAIPromptEngine.getAPIKey())) {
-            AIon = true;
-            TextEngine.printWithDelays("AI services enabled.", false);
-            TextEngine.enterToNext();
-        } else {
-            AIon = false;
-            TextEngine.printWithDelays("Invalid API key. AI services have been disabled.", false);
-            TextEngine.enterToNext();
-        }
-    }
-
     private void weatherListener() {
         if (!weatherRefresh) {
             return;
         }
-        clockEngine = new ClockEngine("timer", ENGINE_SERVICE);
         clockEngine.startClock(900);
         new Thread(() -> {
             while (clockEngine.isRunning()) {

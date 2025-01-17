@@ -1,4 +1,6 @@
 
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -183,5 +185,11 @@ public class ClockEngine {
         if (whatAmI.equals("timer")) {
             this.remainingTimeInSeconds += timeInSeconds;
         }
+    }
+
+    public String timeStamp() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date resultDate = new Date(System.currentTimeMillis());
+        return sdf.format(resultDate);
     }
 }

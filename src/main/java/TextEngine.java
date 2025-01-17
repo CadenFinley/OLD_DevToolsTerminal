@@ -85,6 +85,9 @@ public abstract class TextEngine {
         String[] words = data.split(" "); // Split the data into words
         StringBuilder remainingChars = new StringBuilder(data); // Initialize remaining characters
         for (String word : words) {
+            if (word.contains("\n")) {
+                needToBreak = true;
+            }
             if (buffer) {
                 if ((currentLineWidth + word.length() >= MAX_LINE_WIDTH + 30) && currentLineWidth != 0) {
                     System.out.print('\n');
@@ -95,9 +98,6 @@ public abstract class TextEngine {
                     System.out.print('\n');
                     currentLineWidth = 0;
                 }
-            }
-            if (word.contains("\n")) {
-                needToBreak = true;
             }
             for (char ch : word.toCharArray()) {
                 if (String.valueOf(ch).matches("^[a-zA-Z0-9]+$") && !String.valueOf(ch).matches(" ")) {
@@ -159,6 +159,9 @@ public abstract class TextEngine {
         int currentLineWidth = 0; // Initialize the current line width
         String[] words = data.split(" "); // Split the data into words
         for (String word : words) {
+            if (word.contains("\n")) {
+                needToBreak = true;
+            }
             if (buffer) {
                 if ((currentLineWidth + word.length() >= MAX_LINE_WIDTH + 30) && currentLineWidth != 0) {
                     System.out.print('\n');
@@ -169,9 +172,6 @@ public abstract class TextEngine {
                     System.out.print('\n');
                     currentLineWidth = 0;
                 }
-            }
-            if (word.contains("\n")) {
-                needToBreak = true;
             }
             for (char ch : word.toCharArray()) {
                 System.out.print(ch);
