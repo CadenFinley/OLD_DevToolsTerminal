@@ -37,25 +37,11 @@ public class TerminalPassthrough {
     }
 
     public void executeCommand(String command, boolean feedback) {
-        boolean executionPass;
+        boolean executionPass = true;
         boolean outputted = false;
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder(command.split(" "));
-            processBuilder.directory(new java.io.File(currentDirectory));
-            Process process = processBuilder.start();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println(line);
-                outputted = true;
-            }
-            if (!outputted) {
-                System.out.println();
-            }
-            process.waitFor();
-            executionPass = true;
-            // Update current directory if the command is 'cd'
             if (command.startsWith("cd ")) {
+                // Handle 'cd' command internally
                 String[] commandParts = command.split(" ");
                 if (commandParts.length > 1) {
                     String newPath = commandParts[1];
@@ -69,8 +55,24 @@ public class TerminalPassthrough {
                         currentDirectory = newDir.getCanonicalPath();
                     } else {
                         System.out.println("Directory not found: " + newPath);
+                        executionPass = false;
                     }
                 }
+            } else {
+                // Execute other commands
+                ProcessBuilder processBuilder = new ProcessBuilder(command.split(" "));
+                processBuilder.directory(new java.io.File(currentDirectory));
+                Process process = processBuilder.start();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    System.out.println(line);
+                    outputted = true;
+                }
+                if (!outputted) {
+                    System.out.println();
+                }
+                process.waitFor();
             }
         } catch (IOException | InterruptedException e) {
             if (feedback) {
