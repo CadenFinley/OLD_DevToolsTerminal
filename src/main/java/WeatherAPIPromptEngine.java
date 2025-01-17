@@ -32,7 +32,7 @@ public final class WeatherAPIPromptEngine {
     private Object timeDataLastGathered;
 
     public WeatherAPIPromptEngine() {
-        refreshWeather();
+        weatherAPI();
     }
 
     public void refreshWeather() {

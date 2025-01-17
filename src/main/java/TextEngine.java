@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class TextEngine {
 
-    public static String speedSetting = "Normal";
+    private static String speedSetting = "normal";
     public final static Console console = System.console();
     public static String yellowColor = "\033[1;33m";
     public static String resetColor = "\033[0m";
@@ -76,7 +76,7 @@ public abstract class TextEngine {
     public static void printWithDelays(String data, boolean buffer) {
         boolean needToBreak = false;
         // Use buffer if you are accepting input after the text is printed
-        if (speedSetting.equals("NoDelay") || Engine.TESTING) {
+        if (speedSetting.equals("nodelay") || Engine.TESTING) {
             printNoDelay(data, buffer);
             return;
         }
@@ -87,7 +87,7 @@ public abstract class TextEngine {
         String[] words = data.split(" "); // Split the data into words
         StringBuilder remainingChars = new StringBuilder(data); // Initialize remaining characters
         for (String word : words) {
-            if (word.contains("\n")) {
+            if (word.contains("\\")) {
                 needToBreak = true;
             }
             if (buffer) {
@@ -102,14 +102,20 @@ public abstract class TextEngine {
                 }
             }
             for (char ch : word.toCharArray()) {
+                if (ch == '\n') {
+                    System.out.print('\n');
+                    currentLineWidth = 0;
+                    needToBreak = false;
+                    continue;
+                }
                 if (String.valueOf(ch).matches("^[a-zA-Z0-9]+$") && !String.valueOf(ch).matches(" ")) {
                     try {
                         switch (speedSetting) {
-                            case "Slow" ->
+                            case "slow" ->
                                 TimeUnit.MILLISECONDS.sleep(30);
-                            case "Fast" ->
+                            case "fast" ->
                                 TimeUnit.MILLISECONDS.sleep(10);
-                            case "Normal" -> {
+                            case "normal" -> {
                                 TimeUnit.MILLISECONDS.sleep(20);
                             }
                             default -> {
@@ -155,13 +161,19 @@ public abstract class TextEngine {
      */
     public static void printNoDelay(String data, boolean buffer) { //use buffer is you are accepting input after the text is printed
         boolean needToBreak = false;
+        // Use buffer if you are accepting input after the text is printed
+        if (speedSetting.equals("nodelay") || Engine.TESTING) {
+            printNoDelay(data, buffer);
+            return;
+        }
         if (buffer) {
             data = data + yellowColor + " (press enter to type)" + resetColor;
         }
         int currentLineWidth = 0; // Initialize the current line width
         String[] words = data.split(" "); // Split the data into words
+        StringBuilder remainingChars = new StringBuilder(data); // Initialize remaining characters
         for (String word : words) {
-            if (word.contains("\n")) {
+            if (word.contains("\\")) {
                 needToBreak = true;
             }
             if (buffer) {
@@ -176,16 +188,25 @@ public abstract class TextEngine {
                 }
             }
             for (char ch : word.toCharArray()) {
+                if (ch == '\n') {
+                    System.out.print('\n');
+                    currentLineWidth = 0;
+                    needToBreak = false;
+                    continue;
+                }
                 System.out.print(ch);
                 currentLineWidth++;
+                remainingChars.deleteCharAt(0); // Remove the printed character from remainingChars
             }
             if (needToBreak) {
                 System.out.print('\n');
                 currentLineWidth = 0;
                 needToBreak = false;
-            } else {
-                System.out.print(' '); // Print the space after the word
+            }
+            if (currentLineWidth > 0) {
+                System.out.print(' ');
                 currentLineWidth++;
+                //remainingChars.deleteCharAt(0); // Remove the printed space from remainingChars
             }
         }
         if (data.charAt(data.length() - 1) != '\n' && !buffer) {
@@ -312,5 +333,13 @@ public abstract class TextEngine {
             }
         }
         return false;
+    }
+
+    public static void setSpeedSetting(String speed) {
+        speedSetting = speed;
+    }
+
+    public static String getSpeedSetting() {
+        return speedSetting;
     }
 }

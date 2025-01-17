@@ -121,7 +121,7 @@ public class TestSuite_DevTools {
 
     @Test
     public void testOPENAICONNECTION() {
-        assertTrue(OpenAIPromptEngine.testAPIKey(API_KEY_FOR_TESTING));
+        assertTrue(prompt.testAPIKey(API_KEY_FOR_TESTING));
     }
 
     @Test

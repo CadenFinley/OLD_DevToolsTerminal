@@ -6,13 +6,18 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  *
@@ -28,6 +33,7 @@ public class OpenAIPromptEngine {
     private String lastResponseReceived = "";
     private final List<String> chatCache;
     private boolean useCache = true;
+    private Map<String, Object> responseDataMap;
 
     /**
      * Constructs a PromptEngine object with the specified API key.
@@ -53,9 +59,14 @@ public class OpenAIPromptEngine {
         if (USER_API_KEY == null) {
             return "API key not set.";
         }
+        if (message == null || message.isEmpty()) {
+            return "User's message is empty.";
+        }
         String response = chatGPT(message);
         chatCache.add("User: " + message);
-        chatCache.add("ChatGPT: " + response);
+        if (response != null && !response.isEmpty()) {
+            chatCache.add("ChatGPT: " + response);
+        }
         return response;
     }
 
@@ -93,10 +104,11 @@ public class OpenAIPromptEngine {
             String model = "gpt-3.5-turbo";
             String sentMessage;
             if (useCache && !lastPromptUsed.equals("")) {
-                sentMessage = "These are the previous messages: " + chatCache.toString() + "This is the users responce based on the previous conversation: " + message;
+                sentMessage = "These are the previous messages from this conversation: '" + chatCache.toString() + "' This is the users response based on the previous conversation: '" + message + "'";
             } else {
                 sentMessage = message;
             }
+            //System.out.println("OpenAI: " + System.currentTimeMillis() + " Sending message to OpenAI API: " + sentMessage);
             try {
                 URL obj = new URL(url);
                 HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -119,10 +131,11 @@ public class OpenAIPromptEngine {
                 }
                 // returns the extracted contents of the response.
                 lastPromptUsed = message;
-                lastResponseReceived = extractContentFromResponse(response.toString());
+                responseDataMap = parseJSONResponse(response.toString());
+                lastResponseReceived = extractContentFromJSON(response.toString());
                 return lastResponseReceived;
             } catch (IOException e) {
-                System.out.println("OpenAI API connection failed. Please check your internet connection and try again later. " + System.currentTimeMillis());
+                System.out.println("OpenAI API connection failed. Please check your internet connection and try again later. " + System.currentTimeMillis() + " " + e.getMessage());
                 return null;
             }
         });
@@ -133,7 +146,7 @@ public class OpenAIPromptEngine {
             System.out.println("OpenAI API connection timed out." + System.currentTimeMillis());
             return null;
         } catch (InterruptedException | ExecutionException e) {
-            System.out.println("OpenAI: " + System.currentTimeMillis() + " An error occurred while processing the request.");
+            System.out.println("OpenAI: " + System.currentTimeMillis() + " An error occurred while processing the request. " + e.getMessage());
             return null;
         } finally {
             executor.shutdown();
@@ -141,20 +154,41 @@ public class OpenAIPromptEngine {
     }
 
     /**
-     * This function extracts content from a response string based on specific
-     * markers.
+     * Parses the provided JSON response into a HashMap.
      *
-     * @param response The `extractContentFromResponse` method takes a `String`
-     * parameter named `response`, which is the input string from which we want
-     * to extract the content. The method then finds the starting and ending
-     * markers within the response string to extract the content between them.
-     * @return The method `extractContentFromResponse` returns a substring
-     * containing the content extracted from the input response string.
+     * @param jsonResponse The JSON response to parse.
+     * @return A HashMap containing the parsed data.
      */
-    private static String extractContentFromResponse(String response) {
-        int startMarker = response.indexOf("content") + 11; // Marker for where the content starts.
-        int endMarker = response.indexOf("\"", startMarker); // Marker for where the content ends.
-        return response.substring(startMarker, endMarker); // Returns the substring containing only the response.
+    private Map<String, Object> parseJSONResponse(String jsonResponse) {
+        Map<String, Object> responseData = new HashMap<>();
+        try {
+            JSONObject jsonObject = new JSONObject(jsonResponse);
+            jsonObject.keySet().forEach(key -> {
+                responseData.put(key, jsonObject.get(key));
+            });
+        } catch (JSONException e) {
+            System.out.println("Failed to parse JSON response: " + e.getMessage());
+        }
+        return responseData;
+    }
+
+    /**
+     * Extracts the "content" field from the provided JSON string.
+     *
+     * @param jsonResponse The JSON response string.
+     * @return The content field as a string, or null if not found.
+     */
+    private String extractContentFromJSON(String jsonResponse) {
+        try {
+            JSONObject jsonObject = new JSONObject(jsonResponse);
+            return jsonObject.getJSONArray("choices")
+                    .getJSONObject(0)
+                    .getJSONObject("message")
+                    .getString("content");
+        } catch (JSONException e) {
+            System.out.println("Failed to extract content from JSON response: " + e.getMessage());
+            return null;
+        }
     }
 
     /**
@@ -171,7 +205,7 @@ public class OpenAIPromptEngine {
      * issue) or the response does not contain the expected content, it returns
      * `false`.
      */
-    public static boolean testAPIKey(String apiKey) {
+    public boolean testAPIKey(String apiKey) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executor.submit(() -> {
             String url = "https://api.openai.com/v1/engines";
@@ -263,5 +297,15 @@ public class OpenAIPromptEngine {
 
     public void setUseCache(boolean useCache) {
         this.useCache = useCache;
+    }
+
+    public String getResponseData(String key) {
+        if ("all".equals(key)) {
+            return responseDataMap.toString();
+        }
+        if (responseDataMap.get(key) == null) {
+            return "No data available.";
+        }
+        return responseDataMap.get(key).toString();
     }
 }
