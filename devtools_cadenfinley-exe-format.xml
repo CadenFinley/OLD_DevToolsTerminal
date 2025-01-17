@@ -2,22 +2,18 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>console</headerType>
-  <jar>C:\Users\blade\OneDrive\Documents\GitHub\BarrettHall\ASCII-Adventurer\game\asciiadventurer.jar</jar>
-  <outfile>C:\Users\blade\OneDrive\Documents\GitHub\BarrettHall\ASCII-Adventurer\game\ASCII-Adventurer.exe</outfile>
+  <jar>C:\Users\blade\OneDrive\Documents\GitHub\DevTools_CadenFinley\DevTools_CadenFinley.jar</jar>
+  <outfile>C:\Users\blade\OneDrive\Documents\GitHub\DevTools_CadenFinley\DevTools.exe</outfile>
   <errTitle>You need to download the correct version of java</errTitle>
   <cmdLine></cmdLine>
   <chdir>.</chdir>
   <priority>normal</priority>
   <downloadUrl>https://www.java.com/download/</downloadUrl>
-  <supportUrl>https://github.com/CadenFinley-ACU/ASCII-Adventurer</supportUrl>
+  <supportUrl>https://github.com/CadenFinley/</supportUrl>
   <stayAlive>false</stayAlive>
   <restartOnCrash>true</restartOnCrash>
   <manifest></manifest>
   <icon>C:\Users\blade\Downloads\aculogo.ico</icon>
-  <singleInstance>
-    <mutexName>asciiadventurer</mutexName>
-    <windowTitle>ASCII Adventurer</windowTitle>
-  </singleInstance>
   <jre>
     <path>%JAVA_HOME%;%PATH%</path>
     <requiresJdk>false</requiresJdk>
@@ -30,14 +26,14 @@
   <versionInfo>
     <fileVersion>1.0.0.0</fileVersion>
     <txtFileVersion>1</txtFileVersion>
-    <fileDescription>ASCII-Adventurer SE F24</fileDescription>
+    <fileDescription>devtools</fileDescription>
     <copyright>NONE</copyright>
     <productVersion>1.0.0.0</productVersion>
     <txtProductVersion>asciiadventurer</txtProductVersion>
-    <productName>ASCII-Adventurer</productName>
+    <productName>devtools</productName>
     <companyName></companyName>
-    <internalName>asciiadventurer</internalName>
-    <originalFilename>ASCII-Adventurer.exe</originalFilename>
+    <internalName>devtools</internalName>
+    <originalFilename>devtools.exe</originalFilename>
     <trademarks></trademarks>
     <language>ENGLISH_US</language>
   </versionInfo>
