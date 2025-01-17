@@ -41,26 +41,22 @@ public class TerminalPassthrough {
         boolean outputted = false;
         try {
             if (command.startsWith("cd ")) {
-                // Handle 'cd' command internally
-                String[] commandParts = command.split(" ");
-                if (commandParts.length > 1) {
-                    String newPath = commandParts[1];
-                    java.io.File newDir;
-                    if (System.getProperty("os.name").toLowerCase().contains("win")) {
-                        newDir = new java.io.File(newPath);
-                    } else {
-                        newDir = new java.io.File(currentDirectory, newPath);
-                    }
-                    if (newDir.exists() && newDir.isDirectory()) {
-                        currentDirectory = newDir.getCanonicalPath();
-                    } else {
-                        System.out.println("Directory not found: " + newPath);
-                        executionPass = false;
-                    }
+                String newDir = command.substring(3).trim();
+                java.io.File dir = new java.io.File(currentDirectory, newDir);
+                if (dir.exists() && dir.isDirectory()) {
+                    currentDirectory = dir.getCanonicalPath();
+                } else {
+                    throw new IOException("No such file or directory");
                 }
             } else {
                 // Execute other commands
-                ProcessBuilder processBuilder = new ProcessBuilder(command.split(" "));
+                String os = System.getProperty("os.name").toLowerCase();
+                ProcessBuilder processBuilder;
+                if (os.contains("win")) {
+                    processBuilder = new ProcessBuilder("cmd.exe", "/c", command);
+                } else {
+                    processBuilder = new ProcessBuilder(getTerminalName(), "-c", command);
+                }
                 processBuilder.directory(new java.io.File(currentDirectory));
                 Process process = processBuilder.start();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
