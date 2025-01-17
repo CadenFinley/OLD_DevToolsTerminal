@@ -347,6 +347,7 @@ public class Engine {
         getNextCommand();
         if (lastCommandParsed == null) {
             defaultTextEntryOnAI = true;
+            return;
         }
         if (lastCommandParsed.equals("apikey")) {
             getNextCommand();
