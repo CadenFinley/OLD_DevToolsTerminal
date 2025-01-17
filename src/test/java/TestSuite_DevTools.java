@@ -27,6 +27,8 @@ public class TestSuite_DevTools {
 
     private OpenAIPromptEngine prompt;
 
+    private final String API_KEY_FOR_TESTING = "sk-z3q9L-Lh39YYmooGmbPNAFlsaDywlFdRB-O1vFB4mYT3BlbkFJSSn6Um-zBw4r7fUB2H6dX3fhiOisNo8PFzy-fdKXwA";
+
     @Before
     public void setUp() {
         // Code to run before each test
@@ -117,37 +119,42 @@ public class TestSuite_DevTools {
         assertTrue(timer.getRemainingTimeInSeconds() > 10);
     }
 
-    // @Test
-    // public void testOPENAICONNECTION() {
-    //     assertTrue(OpenAIPromptEngine.testAPIKey(Engine.getOpenAI_API_KEY()));
-    // }
-    // @Test
-    // public void testPromptEngineReceiveInput() {
-    //     prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY());
-    //     String message = "This is a test message to verify connection to OPENAI API.";
-    //     assertTrue(prompt.buildPromptAndReturnResponce(message) != null && !"AI generation is disabled. You can enable it in settings.\n".equals(prompt.buildPromptAndReturnResponce(message)));
-    // }
-    // @Test
-    // public void testPromptCachedMessage() {
-    //     prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY());
-    //     String message = "This is a test message to verify connection to OPENAI API.";
-    //     prompt.buildPromptAndReturnNoResponce(message);
-    //     assertEquals(message, prompt.getLastPromptUsed());
-    // }
-    // @Test
-    // public void testPromptCachedMessage0() {
-    //     prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY());
-    //     String message = "This is a test message to verify connection to OPENAI API.";
-    //     prompt.buildPromptAndReturnNoResponce(message);
-    //     assertEquals("This is a test message to verify connection to OPENAI API.", prompt.getLastPromptUsed());
-    // }
-    // @Test
-    // public void testPromptEngineReceiveInput1() {
-    //     prompt = new OpenAIPromptEngine(Engine.getOpenAI_API_KEY());
-    //     String message = "This is a test message to verify connection to OPENAI API.";
-    //     String received = prompt.buildPromptAndReturnResponce(message);
-    //     assertTrue(received != null && !received.equals("") && !received.equals("AI generation is disabled. You can enable it in settings.\n"));
-    // }
+    @Test
+    public void testOPENAICONNECTION() {
+        assertTrue(OpenAIPromptEngine.testAPIKey(API_KEY_FOR_TESTING));
+    }
+
+    @Test
+    public void testPromptEngineReceiveInput() {
+        prompt = new OpenAIPromptEngine(API_KEY_FOR_TESTING);
+        String message = "This is a test message to verify connection to OPENAI API.";
+        assertTrue(prompt.buildPromptAndReturnResponce(message) != null && !"AI generation is disabled. You can enable it in settings.\n".equals(prompt.buildPromptAndReturnResponce(message)));
+    }
+
+    @Test
+    public void testPromptCachedMessage() {
+        prompt = new OpenAIPromptEngine(API_KEY_FOR_TESTING);
+        String message = "This is a test message to verify connection to OPENAI API.";
+        prompt.buildPromptAndReturnNoResponce(message);
+        assertEquals(message, prompt.getLastPromptUsed());
+    }
+
+    @Test
+    public void testPromptCachedMessage0() {
+        prompt = new OpenAIPromptEngine(API_KEY_FOR_TESTING);
+        String message = "This is a test message to verify connection to OPENAI API.";
+        prompt.buildPromptAndReturnNoResponce(message);
+        assertEquals("This is a test message to verify connection to OPENAI API.", prompt.getLastPromptUsed());
+    }
+
+    @Test
+    public void testPromptEngineReceiveInput1() {
+        prompt = new OpenAIPromptEngine(API_KEY_FOR_TESTING);
+        String message = "This is a test message to verify connection to OPENAI API.";
+        String received = prompt.buildPromptAndReturnResponce(message);
+        assertTrue(received != null && !received.equals("") && !received.equals("AI generation is disabled. You can enable it in settings.\n"));
+    }
+
     @Test
     public void testCheckValidInput() {
         System.setOut(new PrintStream(outContent));

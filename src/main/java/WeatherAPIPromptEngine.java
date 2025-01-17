@@ -26,8 +26,8 @@ import org.json.JSONObject;
  */
 public final class WeatherAPIPromptEngine {
 
-    private String latitude = "32";
-    private String longitude = "99";
+    private String latitude = "32.4487";
+    private String longitude = "99.7331";
     private Map<String, Object> weatherData;
     private Object timeDataLastGathered;
 
@@ -43,8 +43,14 @@ public final class WeatherAPIPromptEngine {
         return weatherData;
     }
 
-    public Object getWeatherDataPart(String key) {
-        return weatherData.get(key);
+    public String getWeatherDataPart(String key) {
+        if ("all".equals(key)) {
+            return getWeatherData().toString();
+        }
+        if (weatherData.get(key) == null) {
+            return "No weather data available.";
+        }
+        return weatherData.get(key).toString();
     }
 
     private String weatherAPI() {
@@ -90,7 +96,6 @@ public final class WeatherAPIPromptEngine {
             Map<String, Object> dataMap = new HashMap<>();
             JSONObject jsonObject = new JSONObject(jsonResponse);
             JSONObject values = jsonObject.getJSONObject("timelines").getJSONArray("minutely").getJSONObject(0).getJSONObject("values");
-
             dataMap.put("cloudBase", values.opt("cloudBase"));
             dataMap.put("cloudCeiling", values.opt("cloudCeiling"));
             dataMap.put("cloudCover", values.optDouble("cloudCover"));
@@ -113,7 +118,6 @@ public final class WeatherAPIPromptEngine {
             dataMap.put("windDirection", values.optDouble("windDirection"));
             dataMap.put("windGust", values.optDouble("windGust"));
             dataMap.put("windSpeed", values.optDouble("windSpeed"));
-
             return dataMap;
         } catch (JSONException e) {
             System.out.println("Weather API: " + System.currentTimeMillis() + "An error occurred while processing the request.");
