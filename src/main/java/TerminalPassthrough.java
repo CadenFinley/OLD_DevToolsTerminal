@@ -59,7 +59,12 @@ public class TerminalPassthrough {
                 String[] commandParts = command.split(" ");
                 if (commandParts.length > 1) {
                     String newPath = commandParts[1];
-                    java.io.File newDir = new java.io.File(currentDirectory, newPath);
+                    java.io.File newDir;
+                    if (System.getProperty("os.name").toLowerCase().contains("win")) {
+                        newDir = new java.io.File(newPath);
+                    } else {
+                        newDir = new java.io.File(currentDirectory, newPath);
+                    }
                     if (newDir.exists() && newDir.isDirectory()) {
                         currentDirectory = newDir.getCanonicalPath();
                     } else {
