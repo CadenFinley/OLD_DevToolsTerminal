@@ -52,12 +52,9 @@ public class Engine {
         if (TESTING) {
             System.out.println("Testing mode is enabled.");
         }
-
         weatherAPIPromptEngine = new WeatherAPIPromptEngine();
         openAIPromptEngine = new OpenAIPromptEngine();
         clockEngine = new ClockEngine("timer", ENGINE_SERVICE);
-
-        TextEngine.clearScreen();
         if (!USER_DATA.exists()) {
             try {
                 USER_DATA.createNewFile();
@@ -293,6 +290,7 @@ public class Engine {
             TextEngine.clearScreen();
             TextEngine.printWithDelays(AI_CHAT_HEADER + "Successfully Connected to OpenAI servers!", false);
             if (!openAIPromptEngine.getChatCache().isEmpty()) {
+                System.out.println("Chat history:");
                 for (String message : openAIPromptEngine.getChatCache()) {
                     TextEngine.printNoDelay(message, false);
                     System.out.println();
