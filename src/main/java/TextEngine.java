@@ -205,7 +205,7 @@ public abstract class TextEngine {
      * it uses only ANSI escape codes.
      */
     public static void clearScreen() { //clears the screen
-        String OS_Name = Engine.getOSName();
+        String OS_Name = System.getProperty("os.name");
         try {
             if (OS_Name.contains("Windows")) {
                 System.out.print("\033[H\033[2J");

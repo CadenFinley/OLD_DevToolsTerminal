@@ -26,8 +26,8 @@ public class Engine {
     private static WeatherAPIPromptEngine weatherAPIPromptEngine;
     private static OpenAIPromptEngine openAIPromptEngine;
     private static TimeEngine clockEngine;
-
     private static final Engine ENGINE_SERVICE = new Engine();
+
     private static boolean weatherRefresh = true;
     private static boolean locationOn = false;
     private static Queue<String> commandsQueue = null;
@@ -42,10 +42,6 @@ public class Engine {
     private static final File USER_DATA = new File("userData.json");
 
     private static List<String> startupCommands;
-
-    public static String getOSName() {
-        return System.getProperty("os.name");
-    }
 
     public static void main(String[] args) {
         TextEngine.clearScreen();
