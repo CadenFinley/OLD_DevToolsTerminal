@@ -1,1 +1,1 @@
-{"latitude":"44","OpenAI_API_KEY":"sk-z3q9L-Lh39YYmooGmbPNAFlsaDywlFdRB-O1vFB4mYT3BlbkFJSSn6Um-zBw4r7fUB2H6dX3fhiOisNo8PFzy-fdKXwA","Location_Enable":true,"Text_Speed":"nodelay","longitude":"99","Chat_Cache":[],"Startup_Commands":["user textspeed nodelay"]}
+{"latitude":"32.4487","OpenAI_API_KEY":"sk-z3q9L-Lh39YYmooGmbPNAFlsaDywlFdRB-O1vFB4mYT3BlbkFJSSn6Um-zBw4r7fUB2H6dX3fhiOisNo8PFzy-fdKXwA","Location_Enable":false,"Text_Speed":"nodelay","longitude":"99.7331","Chat_Cache":[],"Startup_Commands":["user defaultentry ai","user textspeed nodelay"]}

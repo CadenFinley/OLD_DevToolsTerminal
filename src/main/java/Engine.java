@@ -26,6 +26,7 @@ public class Engine {
     private static WeatherAPIPromptEngine weatherAPIPromptEngine;
     private static OpenAIPromptEngine openAIPromptEngine;
     private static TimeEngine clockEngine;
+    private static TerminalPassthrough terminal;
     private static final Engine ENGINE_SERVICE = new Engine();
 
     private static boolean weatherRefresh = true;
@@ -33,10 +34,13 @@ public class Engine {
     private static Queue<String> commandsQueue = null;
     private static String lastCommandParsed = null;
     private static boolean showChatHistoryOnLaunch = true;
+    private static boolean defaultTextEntryOnAI = false;
 
     private static final String GREEN_COLOR_BOLD = "\033[1;32m";
+    private static final String RED_COLOR_BOLD = "\033[1;31m";
     private static final String RESET_COLOR = "\033[0m";
     private static final String MAIN_MENU_HEADER = GREEN_COLOR_BOLD + "Main Menu: " + RESET_COLOR;
+    private static final String TERMINAL_HEADER = RED_COLOR_BOLD + "Terminal: " + RESET_COLOR;
     private static final String AI_CHAT_HEADER = GREEN_COLOR_BOLD + "AI Chat: " + RESET_COLOR;
 
     private static final File USER_DATA = new File("userData.json");
@@ -50,6 +54,7 @@ public class Engine {
         weatherAPIPromptEngine = new WeatherAPIPromptEngine();
         openAIPromptEngine = new OpenAIPromptEngine();
         clockEngine = new TimeEngine("timer", ENGINE_SERVICE);
+        terminal = new TerminalPassthrough();
         if (!USER_DATA.exists()) {
             try {
                 System.out.println("User data file not found. Creating new file...");
@@ -63,12 +68,15 @@ public class Engine {
         }
         if (openAIPromptEngine.getAPIKey() == null || openAIPromptEngine.getAPIKey().isEmpty()) {
             System.out.println("OpenAI API key not found.");
+            defaultTextEntryOnAI = false;
         } else {
             if (openAIPromptEngine.testAPIKey(openAIPromptEngine.getAPIKey())) {
+                defaultTextEntryOnAI = true;
                 TextEngine.printWithDelays(AI_CHAT_HEADER + "Successfully Connected to OpenAI servers!", false);
             } else {
                 TextEngine.printWithDelays(AI_CHAT_HEADER + "An error occurred while connecting to OpenAI servers.", false);
                 TextEngine.printWithDelays(AI_CHAT_HEADER + "Please check your internet connection and try again later.", false);
+                defaultTextEntryOnAI = false;
             }
         }
         if (startupCommands != null && !startupCommands.isEmpty() && startCommandsOn) {
@@ -77,7 +85,7 @@ public class Engine {
                 commandParser("." + command);
             }
         }
-        if (!openAIPromptEngine.getChatCache().isEmpty() && showChatHistoryOnLaunch) {
+        if (!openAIPromptEngine.getChatCache().isEmpty() && showChatHistoryOnLaunch && defaultTextEntryOnAI) {
             System.out.println();
             System.out.println("Chat history:");
             System.out.println();
@@ -93,7 +101,11 @@ public class Engine {
             if (TESTING) {
                 System.out.println("Testing mode is enabled.");
             }
-            TextEngine.printWithDelays(MAIN_MENU_HEADER, true);
+            if (defaultTextEntryOnAI) {
+                TextEngine.printNoDelay(MAIN_MENU_HEADER, true);
+            } else {
+                TextEngine.printNoDelay(terminal.returnCurrentTerminalPosition(), true);
+            }
             String command = console.readLine();
             commandParser(command);
         }
@@ -198,7 +210,11 @@ public class Engine {
             commandProcesser(command.substring(1));
             return;
         }
-        chatProcess(command);
+        if (defaultTextEntryOnAI) {
+            chatProcess(command);
+        } else {
+            terminal.executeCommand(command, true);
+        }
     }
 
     private static void commandProcesser(String command) {
@@ -221,6 +237,16 @@ public class Engine {
             case "user" -> {
                 userSettingsCommands();
             }
+            case "terminal" -> {
+                String strippedCommand;
+                try {
+                    strippedCommand = command.substring(9);
+                } catch (StringIndexOutOfBoundsException e) {
+                    defaultTextEntryOnAI = false;
+                    return;
+                }
+                terminal.executeCommand(strippedCommand, true);
+            }
             case "exit" ->
                 exit();
             case "help" -> {
@@ -240,7 +266,7 @@ public class Engine {
         getNextCommand();
         if (lastCommandParsed == null) {
             TextEngine.printWithDelays("Unknown command. No given ARGS.", false);
-            lastCommandParsed = "help";
+            return;
         }
         if (lastCommandParsed.equals("refresh")) {
             weatherAPIPromptEngine.refreshWeather();
@@ -320,8 +346,7 @@ public class Engine {
     private static void aiSettingsCommands() {
         getNextCommand();
         if (lastCommandParsed == null) {
-            TextEngine.printWithDelays("Unknown command. No given ARGS.", false);
-            lastCommandParsed = "help";
+            defaultTextEntryOnAI = true;
         }
         if (lastCommandParsed.equals("apikey")) {
             getNextCommand();
@@ -391,10 +416,10 @@ public class Engine {
         getNextCommand();
         if (lastCommandParsed == null) {
             TextEngine.printWithDelays("Unknown command. No given ARGS.", false);
-            lastCommandParsed = "help";
+            return;
         }
         if (lastCommandParsed.equals("startup")) {
-            if (!startupCommands.isEmpty()) {
+            if (startupCommands != null && !startupCommands.isEmpty()) {
                 System.out.println("Startup commands:");
                 for (String command : startupCommands) {
                     TextEngine.printNoDelay(command, false);
@@ -414,8 +439,9 @@ public class Engine {
                     return;
                 }
                 startupCommands.add(lastCommandParsed);
+                String commandAdded = lastCommandParsed;
                 TextEngine.printWithDelays("Command added to startup commands.", false);
-                if (!startupCommands.isEmpty()) {
+                if (startupCommands != null && !startupCommands.isEmpty()) {
                     System.out.println("Startup commands:");
                     for (String command : startupCommands) {
                         TextEngine.printNoDelay(command, false);
@@ -427,6 +453,11 @@ public class Engine {
                 if (lastCommandParsed == null) {
                     return;
                 }
+                if (lastCommandParsed.equals("run")) {
+                    commandParser("." + commandAdded);
+                    return;
+                }
+                System.out.println("Unknown command. No given ARGS. Try 'help'");
             }
             if (lastCommandParsed.equals("remove")) {
                 getNextCommand();
@@ -436,7 +467,7 @@ public class Engine {
                 }
                 startupCommands.remove(lastCommandParsed);
                 TextEngine.printWithDelays("Command removed from startup commands.", false);
-                if (!startupCommands.isEmpty()) {
+                if (startupCommands != null && !startupCommands.isEmpty()) {
                     System.out.println("Startup commands:");
                     for (String command : startupCommands) {
                         TextEngine.printNoDelay(command, false);
@@ -452,7 +483,7 @@ public class Engine {
             if (lastCommandParsed.equals("clear")) {
                 startupCommands = new ArrayList<>();
                 TextEngine.printWithDelays("Startup commands cleared.", false);
-                if (!startupCommands.isEmpty()) {
+                if (startupCommands != null && !startupCommands.isEmpty()) {
                     System.out.println("Startup commands:");
                     for (String command : startupCommands) {
                         TextEngine.printNoDelay(command, false);
@@ -482,10 +513,21 @@ public class Engine {
                 }
             }
             if (lastCommandParsed.equals("list")) {
-                if (!startupCommands.isEmpty()) {
+                if (startupCommands != null && !startupCommands.isEmpty()) {
                     System.out.println("Startup commands:");
                     for (String command : startupCommands) {
                         TextEngine.printNoDelay(command, false);
+                    }
+                } else {
+                    System.out.println("No startup commands.");
+                }
+                return;
+            }
+            if (lastCommandParsed.equals("runall")) {
+                if (startupCommands != null && !startupCommands.isEmpty()) {
+                    System.out.println("Running startup commands...");
+                    for (String command : startupCommands) {
+                        commandParser("." + command);
                     }
                 } else {
                     System.out.println("No startup commands.");
@@ -678,12 +720,31 @@ public class Engine {
             System.out.println("Text speed set to " + TextEngine.getSpeedSetting());
             return;
         }
+        if (lastCommandParsed.equals("defaultentry")) {
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                return;
+            }
+            if (lastCommandParsed.equals("ai")) {
+                System.out.println("Default text entry set to AI.");
+                defaultTextEntryOnAI = true;
+                return;
+            }
+            if (lastCommandParsed.equals("terminal")) {
+                System.out.println("Default text entry set to terminal.");
+                defaultTextEntryOnAI = false;
+                return;
+            }
+            System.out.println("Unknown command. No given ARGS. Try 'help'");
+        }
         if (lastCommandParsed.equals("help")) {
             System.out.println("Commands: ");
-            System.out.println("startup: add [ARGS], remove [ARGS], clear, enable, disable");
+            System.out.println("startup: add [ARGS] [ARGS], remove [ARGS], clear, enable, disable, list, runall");
             System.out.println("data: get");
             System.out.println("location: enable, disable, set [ARGS] [ARGS]");
             System.out.println("chat: history, cache, testing, textspeed");
+            System.out.println("defaultentry: ai, terminal");
             return;
         }
         TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
