@@ -1,7 +1,6 @@
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.Map;
 
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
@@ -228,23 +227,5 @@ public class TestSuite_DevTools {
         assertFalse(TextEngine.has(possibleCommands, "")); // Empty string test
         assertFalse(TextEngine.has(possibleCommands, null)); // Null test
         System.setOut(originalOut);
-    }
-
-    @Test
-    public void testWeatherAPI() {
-        WeatherAPIPromptEngine weather = new WeatherAPIPromptEngine();
-        Object response = weather.getWeatherDataPart("temperature");
-        System.out.println(response);
-        assertTrue(response != null && !response.equals(""));
-    }
-
-    @Test
-    public void testExtractWeatherData() {
-        String jsonResponse = "{ \"timelines\": { \"minutely\": [ { \"time\": \"2025-01-15T15:09:00Z\", \"values\": { \"cloudBase\": null, \"cloudCeiling\": null, \"cloudCover\": 1, \"dewPoint\": -15.38, \"freezingRainIntensity\": 0, \"hailProbability\": 11.6, \"hailSize\": 3.46, \"humidity\": 39, \"precipitationProbability\": 0, \"pressureSurfaceLevel\": 1013.63, \"rainIntensity\": 0, \"sleetIntensity\": 0, \"snowIntensity\": 0, \"temperature\": -3.38, \"temperatureApparent\": -10.27, \"uvHealthConcern\": 0, \"uvIndex\": 1, \"visibility\": 16, \"weatherCode\": 1000, \"windDirection\": 315.19, \"windGust\": 11.63, \"windSpeed\": 7 } } ] } } }";
-        WeatherAPIPromptEngine weatherEngine = new WeatherAPIPromptEngine();
-        Map<String, Object> extractedData = weatherEngine.extractWeatherData(jsonResponse);
-        assertEquals(-15.38, extractedData.get("dewPoint"));
-        assertEquals(1.0, extractedData.get("cloudCover"));
-        assertEquals(39, extractedData.get("humidity"));
     }
 }

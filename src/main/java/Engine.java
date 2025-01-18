@@ -24,14 +24,11 @@ public class Engine {
     private static boolean usingChatCache = true;
     private static List<String> savedChatCache = new ArrayList<>();
 
-    private static WeatherAPIPromptEngine weatherAPIPromptEngine;
     private static OpenAIPromptEngine openAIPromptEngine;
     private static TimeEngine clockEngine;
     private static final TerminalPassthrough terminal = new TerminalPassthrough();
     private static final Engine ENGINE_SERVICE = new Engine();
 
-    private static boolean weatherRefresh = true;
-    private static boolean locationOn = false;
     private static Queue<String> commandsQueue = null;
     private static String lastCommandParsed = null;
     private static boolean showChatHistoryOnLaunch = true;
@@ -51,7 +48,6 @@ public class Engine {
         TextEngine.clearScreen();
         TextEngine.printWithDelays("Loading...", false, true);
         TextEngine.setWidth();
-        weatherAPIPromptEngine = new WeatherAPIPromptEngine();
         openAIPromptEngine = new OpenAIPromptEngine();
         clockEngine = new TimeEngine("timer", ENGINE_SERVICE);
         if (!USER_DATA.exists()) {
@@ -79,13 +75,10 @@ public class Engine {
             }
         }
         if (startupCommands != null && !startupCommands.isEmpty() && startCommandsOn) {
-            System.out.println(MAIN_MENU_HEADER + "Running startup commands...");
+            System.out.println("Running startup commands...");
             for (String command : startupCommands) {
                 commandParser("." + command);
             }
-        }
-        if (weatherRefresh && locationOn) {
-            ENGINE_SERVICE.weatherListener();
         }
         if (TESTING) {
             System.out.println("Testing mode is enabled.");
@@ -114,9 +107,6 @@ public class Engine {
         try {
             JSONObject userData = new JSONObject(Files.readString(USER_DATA.toPath()));
             openAIPromptEngine.setAPIKey(userData.getString("OpenAI_API_KEY"));
-            locationOn = userData.getBoolean("Location_Enable");
-            weatherAPIPromptEngine.setLatitude(userData.getString("latitude"));
-            weatherAPIPromptEngine.setLongitude(userData.getString("longitude"));
             savedChatCache = new ArrayList<>();
             userData.getJSONArray("Chat_Cache").forEach(item -> savedChatCache.add((String) item));
             openAIPromptEngine.setChatCache(savedChatCache);
@@ -132,9 +122,6 @@ public class Engine {
         try (FileWriter file = new FileWriter(USER_DATA)) {
             JSONObject userData = new JSONObject();
             userData.put("OpenAI_API_KEY", openAIPromptEngine.getAPIKey());
-            userData.put("latitude", weatherAPIPromptEngine.getLatitude());
-            userData.put("longitude", weatherAPIPromptEngine.getLongitude());
-            userData.put("Location_Enable", locationOn);
             userData.put("Chat_Cache", savedChatCache);
             userData.put("Startup_Commands", startupCommands);
             userData.put("Text_Speed", TextEngine.getSpeedSetting());
@@ -233,9 +220,6 @@ public class Engine {
         }
         getNextCommand();
         switch (lastCommandParsed) {
-            case "weather" -> {
-                weatherSettingsCommands();
-            }
             case "ai" -> {
                 aiSettingsCommands();
             }
@@ -294,87 +278,6 @@ public class Engine {
             System.err.println("Thread Interrupted");
         }
         System.out.println();
-    }
-
-    private static void weatherSettingsCommands() {
-        getNextCommand();
-        if (lastCommandParsed == null) {
-            TextEngine.printWithDelays("Unknown command. No given ARGS.", false, true);
-            return;
-        }
-        if (lastCommandParsed.equals("refresh")) {
-            weatherAPIPromptEngine.refreshWeather();
-            return;
-        }
-        if (lastCommandParsed.equals("get")) {
-            if (!locationOn) {
-                TextEngine.printWithDelays("Location based services are disabled.", false, true);
-                return;
-            }
-            getNextCommand();
-            if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                return;
-            }
-            String recievedWeatherData = weatherAPIPromptEngine.getWeatherDataPart(lastCommandParsed);
-            if (recievedWeatherData == null || recievedWeatherData.isEmpty() || recievedWeatherData.equals("No weather data available.") || lastCommandParsed.equals("all")) {
-                TextEngine.printWithDelays(recievedWeatherData, false, true);
-                return;
-            }
-            TextEngine.printWithDelays("The current " + lastCommandParsed + " is " + recievedWeatherData, false, true);
-            return;
-        }
-        if (lastCommandParsed.equals("autorefresh")) {
-            getNextCommand();
-            if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                return;
-            }
-            if (lastCommandParsed.equals("enable")) {
-                weatherRefresh = true;
-                TextEngine.printWithDelays("Weather auto-refresh enabled.", false, true);
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    return;
-                }
-            }
-            if (lastCommandParsed.equals("disable")) {
-                weatherRefresh = false;
-                TextEngine.printWithDelays("Weather auto-refresh disabled.", false, true);
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    return;
-                }
-            }
-        }
-        if (lastCommandParsed.equals("change")) {
-            getNextCommand();
-            if (lastCommandParsed.equals("location")) {
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                    return;
-                }
-                weatherAPIPromptEngine.setLatitude(lastCommandParsed);
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                    return;
-                }
-                weatherAPIPromptEngine.setLongitude(lastCommandParsed);
-                TextEngine.printWithDelays("Location successfully set. Latitude: " + weatherAPIPromptEngine.getLatitude() + " Longetude: " + weatherAPIPromptEngine.getLongitude(), false, true);
-            }
-            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-        }
-        if (lastCommandParsed.equals("help")) {
-            System.out.println("Commands: ");
-            System.out.println("refresh");
-            System.out.println("get: [ARGS]");
-            System.out.println("autorefresh: enable, disable");
-            System.out.println("change: location [ARGS] [ARGS]");
-            return;
-        }
-        TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
     }
 
     private static void aiSettingsCommands() {
@@ -573,47 +476,6 @@ public class Engine {
                 System.out.println(readAndReturnUserDataFile());
                 return;
             }
-            System.out.println("Unknown command. No given ARGS. Try 'help'");
-        }
-        if (lastCommandParsed.equals("location")) {
-            getNextCommand();
-            if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                return;
-            }
-            if (lastCommandParsed.equals("enable")) {
-                locationOn = true;
-                TextEngine.printWithDelays("Location based services have been enabled.", false, true);
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    return;
-                }
-            }
-            if (lastCommandParsed.equals("disable")) {
-                locationOn = false;
-                TextEngine.printWithDelays("Location based services have been disabled.", false, true);
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    return;
-                }
-            }
-            if (lastCommandParsed.equals("set")) {
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                    return;
-                }
-                weatherAPIPromptEngine.setLatitude(lastCommandParsed);
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                    return;
-                }
-                weatherAPIPromptEngine.setLongitude(lastCommandParsed);
-                weatherAPIPromptEngine.refreshWeather();
-                TextEngine.printWithDelays("Location successfully set. Latitude: " + weatherAPIPromptEngine.getLatitude() + " Longetude: " + weatherAPIPromptEngine.getLongitude(), false, true);
-                return;
-            }
             TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
         }
         if (lastCommandParsed.equals("chat")) {
@@ -792,7 +654,6 @@ public class Engine {
             System.out.println("Commands: ");
             System.out.println("startup: add [ARGS] [ARGS], remove [ARGS], clear, enable, disable, list, runall");
             System.out.println("data: get");
-            System.out.println("location: enable, disable, set [ARGS] [ARGS]");
             System.out.println("chat: history, cache, testing, textspeed");
             System.out.println("defaultentry: ai, terminal");
             return;
@@ -847,28 +708,5 @@ public class Engine {
         TextEngine.printWithDelays("Exiting...", false, true);
         TextEngine.clearScreen();
         System.exit(0);
-    }
-
-    private void weatherListener() {
-        clockEngine = new TimeEngine("timer", ENGINE_SERVICE);
-        if (!weatherRefresh) {
-            return;
-        }
-        clockEngine.startClock(60 * 15);
-        new Thread(() -> {
-            while (clockEngine.isRunning()) {
-                try {
-                    synchronized (this) {
-                        wait();
-                    }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    System.err.println("Thread Interrupted");
-                }
-            }
-            clockEngine.stopClock();
-            weatherAPIPromptEngine.refreshWeather();
-            weatherListener();
-        }).start();
     }
 }
