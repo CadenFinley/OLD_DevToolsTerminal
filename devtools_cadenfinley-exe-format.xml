@@ -6,7 +6,7 @@
   <outfile>C:\Users\blade\OneDrive\Documents\GitHub\DevTools_CadenFinley\DevToolsTerminal.exe</outfile>
   <errTitle>You need to download the correct version of java</errTitle>
   <cmdLine></cmdLine>
-  <chdir>.</chdir>
+  <chdir></chdir>
   <priority>normal</priority>
   <downloadUrl>https://www.java.com/download/</downloadUrl>
   <supportUrl>https://github.com/CadenFinley/</supportUrl>
