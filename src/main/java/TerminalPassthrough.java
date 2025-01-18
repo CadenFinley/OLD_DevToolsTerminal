@@ -1,7 +1,5 @@
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 public class TerminalPassthrough {
 
@@ -36,55 +34,47 @@ public class TerminalPassthrough {
         return (RED_COLOR_BOLD + getCurrentFilePath() + " " + getTerminalName() + ": " + RESET_COLOR);
     }
 
-    public void executeCommand(String command, boolean feedback) {
-        boolean executionPass = true;
-        boolean outputted = false;
-        try {
-            if (command.startsWith("cd ")) {
-                String newDir = command.substring(3).trim();
-                java.io.File dir = new java.io.File(currentDirectory, newDir);
-                if (dir.exists() && dir.isDirectory()) {
-                    currentDirectory = dir.getCanonicalPath();
+    public Thread executeCommand(String command, boolean feedback) {
+        Thread commandThread = new Thread(() -> {
+            boolean executionPass = true;
+            boolean outputted = false;
+            try {
+                if (command.startsWith("cd ")) {
+                    String newDir = command.substring(3).trim();
+                    java.io.File dir = new java.io.File(currentDirectory, newDir);
+                    if (dir.exists() && dir.isDirectory()) {
+                        currentDirectory = dir.getCanonicalPath();
+                    } else {
+                        throw new IOException("No such file or directory");
+                    }
                 } else {
-                    throw new IOException("No such file or directory");
+                    String os = System.getProperty("os.name").toLowerCase();
+                    ProcessBuilder processBuilder;
+                    if (os.contains("win")) {
+                        processBuilder = new ProcessBuilder("cmd.exe", "/c", command);
+                    } else {
+                        processBuilder = new ProcessBuilder(getTerminalName(), "-c", command);
+                    }
+                    processBuilder.directory(new java.io.File(currentDirectory));
+                    processBuilder.redirectInput(ProcessBuilder.Redirect.INHERIT);
+                    processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+                    processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
+                    Process process = processBuilder.start();
+                    process.waitFor();
                 }
-            } else {
-                // Execute other commands
-                String os = System.getProperty("os.name").toLowerCase();
-                ProcessBuilder processBuilder;
-                if (os.contains("win")) {
-                    processBuilder = new ProcessBuilder("cmd.exe", "/c", command);
-                } else {
-                    processBuilder = new ProcessBuilder(getTerminalName(), "-c", command);
+            } catch (IOException | InterruptedException e) {
+                if (feedback) {
+                    System.out.println("Error executing command: '" + command + "' " + e.getMessage());
                 }
-                processBuilder.directory(new java.io.File(currentDirectory));
-                Process process = processBuilder.start();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    System.out.println(line);
-                    outputted = true;
-                }
-                while ((line = errorReader.readLine()) != null) {
-                    System.err.println(line);
-                    outputted = true;
-                }
-                if (!outputted) {
-                    System.out.println();
-                }
-                process.waitFor();
+                executionPass = false;
             }
-        } catch (IOException | InterruptedException e) {
             if (feedback) {
-                System.out.println("Error executing command: '" + command + "' " + e.getMessage());
+                if (!executionPass) {
+                    System.out.println("Command failed to execute: '" + command + "'");
+                }
             }
-            executionPass = false;
-        }
-        if (feedback) {
-            if (!executionPass) {
-                System.out.println("Command failed to execute: '" + command + "'");
-            }
-        }
+        });
+        commandThread.start();
+        return commandThread;
     }
 }

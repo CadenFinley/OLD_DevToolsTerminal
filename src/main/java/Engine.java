@@ -26,7 +26,7 @@ public class Engine {
     private static WeatherAPIPromptEngine weatherAPIPromptEngine;
     private static OpenAIPromptEngine openAIPromptEngine;
     private static TimeEngine clockEngine;
-    private static TerminalPassthrough terminal;
+    private static final TerminalPassthrough terminal = new TerminalPassthrough();
     private static final Engine ENGINE_SERVICE = new Engine();
 
     private static boolean weatherRefresh = true;
@@ -54,7 +54,6 @@ public class Engine {
         weatherAPIPromptEngine = new WeatherAPIPromptEngine();
         openAIPromptEngine = new OpenAIPromptEngine();
         clockEngine = new TimeEngine("timer", ENGINE_SERVICE);
-        terminal = new TerminalPassthrough();
         if (!USER_DATA.exists()) {
             try {
                 System.out.println("User data file not found. Creating new file...");
@@ -213,7 +212,14 @@ public class Engine {
         if (defaultTextEntryOnAI) {
             chatProcess(command);
         } else {
-            terminal.executeCommand(command, true);
+            Thread commandThread = terminal.executeCommand(command, true);
+            try {
+                commandThread.join(); // Wait for the thread to finish
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.err.println("Thread Interrupted");
+            }
+            System.out.println();
         }
     }
 
