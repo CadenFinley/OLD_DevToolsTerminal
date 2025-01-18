@@ -21,6 +21,7 @@ public class Engine {
     public static boolean TESTING = false;
     private static boolean startCommandsOn = true;
     private static boolean incognitoChatMode = false;
+    private static boolean usingChatCache = true;
     private static List<String> savedChatCache = new ArrayList<>();
 
     private static WeatherAPIPromptEngine weatherAPIPromptEngine;
@@ -35,10 +36,11 @@ public class Engine {
     private static String lastCommandParsed = null;
     private static boolean showChatHistoryOnLaunch = true;
     private static boolean defaultTextEntryOnAI = false;
+    private static boolean textBuffer = true;
 
     private static final String GREEN_COLOR_BOLD = "\033[1;32m";
     private static final String RESET_COLOR = "\033[0m";
-    private static final String MAIN_MENU_HEADER = GREEN_COLOR_BOLD + "Main Menu: " + RESET_COLOR;
+    private static final String MAIN_MENU_HEADER = GREEN_COLOR_BOLD + "AI Menu: " + RESET_COLOR;
     private static final String AI_CHAT_HEADER = GREEN_COLOR_BOLD + "AI Chat: " + RESET_COLOR;
 
     private static final File USER_DATA = new File("userData.json");
@@ -47,7 +49,7 @@ public class Engine {
 
     public static void main(String[] args) {
         TextEngine.clearScreen();
-        TextEngine.printWithDelays("Loading...", false);
+        TextEngine.printWithDelays("Loading...", false, true);
         TextEngine.setWidth();
         weatherAPIPromptEngine = new WeatherAPIPromptEngine();
         openAIPromptEngine = new OpenAIPromptEngine();
@@ -58,7 +60,7 @@ public class Engine {
                 USER_DATA.createNewFile();
                 writeUserData();
             } catch (IOException e) {
-                TextEngine.printWithDelays(MAIN_MENU_HEADER + "An error occurred while creating the user data file.", false);
+                TextEngine.printWithDelays(MAIN_MENU_HEADER + "An error occurred while creating the user data file.", false, true);
             }
         } else {
             loadUserData();
@@ -69,10 +71,10 @@ public class Engine {
         } else {
             if (openAIPromptEngine.testAPIKey(openAIPromptEngine.getAPIKey())) {
                 defaultTextEntryOnAI = true;
-                TextEngine.printWithDelays(AI_CHAT_HEADER + "Successfully Connected to OpenAI servers!", false);
+                TextEngine.printWithDelays(AI_CHAT_HEADER + "Successfully Connected to OpenAI servers!", false, true);
             } else {
-                TextEngine.printWithDelays(AI_CHAT_HEADER + "An error occurred while connecting to OpenAI servers.", false);
-                TextEngine.printWithDelays(AI_CHAT_HEADER + "Please check your internet connection and try again later.", false);
+                TextEngine.printWithDelays(AI_CHAT_HEADER + "An error occurred while connecting to OpenAI servers.", false, true);
+                TextEngine.printWithDelays(AI_CHAT_HEADER + "Please check your internet connection and try again later.", false, true);
                 defaultTextEntryOnAI = false;
             }
         }
@@ -93,15 +95,15 @@ public class Engine {
             System.out.println("Chat history:");
             System.out.println();
             for (String message : openAIPromptEngine.getChatCache()) {
-                TextEngine.printNoDelay(message, false);
+                TextEngine.printNoDelay(message, false, true);
                 System.out.println();
             }
         }
         while (true) {
             if (defaultTextEntryOnAI) {
-                TextEngine.printNoDelay(MAIN_MENU_HEADER, true);
+                TextEngine.printNoDelay(MAIN_MENU_HEADER, textBuffer, false);
             } else {
-                TextEngine.printNoDelay(terminal.returnCurrentTerminalPosition(), true);
+                TextEngine.printNoDelay(terminal.returnCurrentTerminalPosition(), textBuffer, false);
             }
             String command = console.readLine();
             commandParser(command);
@@ -122,7 +124,7 @@ public class Engine {
             userData.getJSONArray("Startup_Commands").forEach(item -> startupCommands.add((String) item));
             TextEngine.setSpeedSetting(userData.getString("Text_Speed"));
         } catch (IOException e) {
-            TextEngine.printWithDelays("An error occurred while reading the user data file.", false);
+            TextEngine.printWithDelays("An error occurred while reading the user data file.", false, true);
         }
     }
 
@@ -139,7 +141,7 @@ public class Engine {
             file.write(userData.toString());
             file.flush();
         } catch (IOException e) {
-            TextEngine.printWithDelays("An error occurred while writing to the user data file.", false);
+            TextEngine.printWithDelays("An error occurred while writing to the user data file.", false, true);
         }
     }
 
@@ -151,7 +153,7 @@ public class Engine {
             }
             return userData;
         } catch (IOException e) {
-            TextEngine.printWithDelays("An error occurred while reading the user data file.", false);
+            TextEngine.printWithDelays("An error occurred while reading the user data file.", false, true);
             return null;
         }
     }
@@ -192,7 +194,7 @@ public class Engine {
 
     private static void commandParser(String command) {
         if (command == null || command.isEmpty()) {
-            TextEngine.printWithDelays("Invalid input. Please try again.", false);
+            TextEngine.printWithDelays("Invalid input. Please try again.", false, true);
             return;
         }
         if (command.equals("exit")) {
@@ -200,6 +202,12 @@ public class Engine {
             return;
         }
         if (command.equals("help")) {
+            if (!defaultTextEntryOnAI && openAIPromptEngine.getAPIKey() != null && !openAIPromptEngine.getAPIKey().isEmpty()) {
+                String message = ("I am encountering these errors in the " + terminal.getTerminalName() + " and would like some help solving these issues: " + terminal.getTerminalCache());
+                TextEngine.printWithDelays(openAIPromptEngine.buildPromptAndReturnResponce(message, false), false, true);
+                System.out.println();
+                return;
+            }
             commandProcesser("help");
             return;
         }
@@ -221,7 +229,7 @@ public class Engine {
             System.out.println(commandsQueue);
         }
         if (commandsQueue.isEmpty()) {
-            TextEngine.printWithDelays("Unknown command. Please try again.", false);
+            TextEngine.printWithDelays("Unknown command. Please try again.", false, true);
         }
         getNextCommand();
         switch (lastCommandParsed) {
@@ -248,15 +256,15 @@ public class Engine {
             case "exit" ->
                 exit();
             case "help" -> {
-                TextEngine.printWithDelays("Commands:", false);
-                TextEngine.printWithDelays(".weather", false);
-                TextEngine.printWithDelays(".ai", false);
-                TextEngine.printWithDelays(".user", false);
-                TextEngine.printWithDelays(".exit", false);
-                TextEngine.printWithDelays(".help", false);
+                TextEngine.printWithDelays("Commands:", false, true);
+                TextEngine.printWithDelays(".weather", false, true);
+                TextEngine.printWithDelays(".ai", false, true);
+                TextEngine.printWithDelays(".user", false, true);
+                TextEngine.printWithDelays(".exit", false, true);
+                TextEngine.printWithDelays(".help", false, true);
             }
             default ->
-                TextEngine.printWithDelays("Unknown command. Please try again. Type 'help' or '.help' if you need help", false);
+                TextEngine.printWithDelays("Unknown command. Please try again. Type 'help' or '.help' if you need help", false, true);
         }
     }
 
@@ -291,7 +299,7 @@ public class Engine {
     private static void weatherSettingsCommands() {
         getNextCommand();
         if (lastCommandParsed == null) {
-            TextEngine.printWithDelays("Unknown command. No given ARGS.", false);
+            TextEngine.printWithDelays("Unknown command. No given ARGS.", false, true);
             return;
         }
         if (lastCommandParsed.equals("refresh")) {
@@ -300,31 +308,31 @@ public class Engine {
         }
         if (lastCommandParsed.equals("get")) {
             if (!locationOn) {
-                TextEngine.printWithDelays("Location based services are disabled.", false);
+                TextEngine.printWithDelays("Location based services are disabled.", false, true);
                 return;
             }
             getNextCommand();
             if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                 return;
             }
             String recievedWeatherData = weatherAPIPromptEngine.getWeatherDataPart(lastCommandParsed);
             if (recievedWeatherData == null || recievedWeatherData.isEmpty() || recievedWeatherData.equals("No weather data available.") || lastCommandParsed.equals("all")) {
-                TextEngine.printWithDelays(recievedWeatherData, false);
+                TextEngine.printWithDelays(recievedWeatherData, false, true);
                 return;
             }
-            TextEngine.printWithDelays("The current " + lastCommandParsed + " is " + recievedWeatherData, false);
+            TextEngine.printWithDelays("The current " + lastCommandParsed + " is " + recievedWeatherData, false, true);
             return;
         }
         if (lastCommandParsed.equals("autorefresh")) {
             getNextCommand();
             if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                 return;
             }
             if (lastCommandParsed.equals("enable")) {
                 weatherRefresh = true;
-                TextEngine.printWithDelays("Weather auto-refresh enabled.", false);
+                TextEngine.printWithDelays("Weather auto-refresh enabled.", false, true);
                 getNextCommand();
                 if (lastCommandParsed == null) {
                     return;
@@ -332,7 +340,7 @@ public class Engine {
             }
             if (lastCommandParsed.equals("disable")) {
                 weatherRefresh = false;
-                TextEngine.printWithDelays("Weather auto-refresh disabled.", false);
+                TextEngine.printWithDelays("Weather auto-refresh disabled.", false, true);
                 getNextCommand();
                 if (lastCommandParsed == null) {
                     return;
@@ -344,19 +352,19 @@ public class Engine {
             if (lastCommandParsed.equals("location")) {
                 getNextCommand();
                 if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                     return;
                 }
                 weatherAPIPromptEngine.setLatitude(lastCommandParsed);
                 getNextCommand();
                 if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                     return;
                 }
                 weatherAPIPromptEngine.setLongitude(lastCommandParsed);
-                TextEngine.printWithDelays("Location successfully set. Latitude: " + weatherAPIPromptEngine.getLatitude() + " Longetude: " + weatherAPIPromptEngine.getLongitude(), false);
+                TextEngine.printWithDelays("Location successfully set. Latitude: " + weatherAPIPromptEngine.getLatitude() + " Longetude: " + weatherAPIPromptEngine.getLongitude(), false, true);
             }
-            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
         }
         if (lastCommandParsed.equals("help")) {
             System.out.println("Commands: ");
@@ -366,7 +374,7 @@ public class Engine {
             System.out.println("change: location [ARGS] [ARGS]");
             return;
         }
-        TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+        TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
     }
 
     private static void aiSettingsCommands() {
@@ -378,13 +386,13 @@ public class Engine {
         if (lastCommandParsed.equals("apikey")) {
             getNextCommand();
             if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                 return;
             }
             if (lastCommandParsed.equals("set")) {
                 getNextCommand();
                 if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                     return;
                 }
                 openAIPromptEngine.setAPIKey(lastCommandParsed);
@@ -392,7 +400,7 @@ public class Engine {
                     System.out.println("OpenAI API key set.");
                     return;
                 } else {
-                    TextEngine.printWithDelays("Invalid API key. AI services have been disabled", false);
+                    TextEngine.printWithDelays("Invalid API key. AI services have been disabled", false, true);
                     return;
                 }
             }
@@ -408,17 +416,17 @@ public class Engine {
         if (lastCommandParsed.equals("chat")) {
             getNextCommand();
             if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                 return;
             }
-            TextEngine.printWithDelays(clockEngine.timeStamp() + " Sent message to GPT: " + lastCommandParsed, false);
+            TextEngine.printWithDelays(clockEngine.timeStamp() + " Sent message to GPT: " + lastCommandParsed, false, true);
             chatProcess(lastCommandParsed);
             return;
         }
         if (lastCommandParsed.equals("get")) {
             getNextCommand();
             if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                 return;
             }
             System.out.println(openAIPromptEngine.getResponseData(lastCommandParsed));
@@ -436,42 +444,34 @@ public class Engine {
             System.out.println("get: [ARGS]");
             return;
         }
-        TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+        TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
     }
 
     private static void userSettingsCommands() {
         getNextCommand();
         if (lastCommandParsed == null) {
-            TextEngine.printWithDelays("Unknown command. No given ARGS.", false);
+            TextEngine.printWithDelays("Unknown command. No given ARGS.", false, true);
             return;
         }
         if (lastCommandParsed.equals("startup")) {
-            if (startupCommands != null && !startupCommands.isEmpty()) {
-                System.out.println("Startup commands:");
-                for (String command : startupCommands) {
-                    TextEngine.printNoDelay(command, false);
-                }
-            } else {
-                System.out.println("No startup commands.");
-            }
             getNextCommand();
             if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                 return;
             }
             if (lastCommandParsed.equals("add")) {
                 getNextCommand();
                 if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                     return;
                 }
                 startupCommands.add(lastCommandParsed);
                 String commandAdded = lastCommandParsed;
-                TextEngine.printWithDelays("Command added to startup commands.", false);
+                TextEngine.printWithDelays("Command added to startup commands.", false, true);
                 if (startupCommands != null && !startupCommands.isEmpty()) {
                     System.out.println("Startup commands:");
                     for (String command : startupCommands) {
-                        TextEngine.printNoDelay(command, false);
+                        TextEngine.printNoDelay(command, false, true);
                     }
                 } else {
                     System.out.println("No startup commands.");
@@ -489,15 +489,15 @@ public class Engine {
             if (lastCommandParsed.equals("remove")) {
                 getNextCommand();
                 if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                     return;
                 }
                 startupCommands.remove(lastCommandParsed);
-                TextEngine.printWithDelays("Command removed from startup commands.", false);
+                TextEngine.printWithDelays("Command removed from startup commands.", false, true);
                 if (startupCommands != null && !startupCommands.isEmpty()) {
                     System.out.println("Startup commands:");
                     for (String command : startupCommands) {
-                        TextEngine.printNoDelay(command, false);
+                        TextEngine.printNoDelay(command, false, true);
                     }
                 } else {
                     System.out.println("No startup commands.");
@@ -509,11 +509,11 @@ public class Engine {
             }
             if (lastCommandParsed.equals("clear")) {
                 startupCommands = new ArrayList<>();
-                TextEngine.printWithDelays("Startup commands cleared.", false);
+                TextEngine.printWithDelays("Startup commands cleared.", false, true);
                 if (startupCommands != null && !startupCommands.isEmpty()) {
                     System.out.println("Startup commands:");
                     for (String command : startupCommands) {
-                        TextEngine.printNoDelay(command, false);
+                        TextEngine.printNoDelay(command, false, true);
                     }
                 } else {
                     System.out.println("No startup commands.");
@@ -525,7 +525,7 @@ public class Engine {
             }
             if (lastCommandParsed.equals("enable")) {
                 startCommandsOn = true;
-                TextEngine.printWithDelays("Startup commands enabled.", false);
+                TextEngine.printWithDelays("Startup commands enabled.", false, true);
                 getNextCommand();
                 if (lastCommandParsed == null) {
                     return;
@@ -533,7 +533,7 @@ public class Engine {
             }
             if (lastCommandParsed.equals("disable")) {
                 startCommandsOn = false;
-                TextEngine.printWithDelays("Startup commands disabled.", false);
+                TextEngine.printWithDelays("Startup commands disabled.", false, true);
                 getNextCommand();
                 if (lastCommandParsed == null) {
                     return;
@@ -543,7 +543,7 @@ public class Engine {
                 if (startupCommands != null && !startupCommands.isEmpty()) {
                     System.out.println("Startup commands:");
                     for (String command : startupCommands) {
-                        TextEngine.printNoDelay(command, false);
+                        TextEngine.printNoDelay(command, false, true);
                     }
                 } else {
                     System.out.println("No startup commands.");
@@ -561,12 +561,12 @@ public class Engine {
                 }
                 return;
             }
-            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
         }
         if (lastCommandParsed.equals("data")) {
             getNextCommand();
             if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                 return;
             }
             if (lastCommandParsed.equals("get")) {
@@ -578,12 +578,12 @@ public class Engine {
         if (lastCommandParsed.equals("location")) {
             getNextCommand();
             if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                 return;
             }
             if (lastCommandParsed.equals("enable")) {
                 locationOn = true;
-                TextEngine.printWithDelays("Location based services have been enabled.", false);
+                TextEngine.printWithDelays("Location based services have been enabled.", false, true);
                 getNextCommand();
                 if (lastCommandParsed == null) {
                     return;
@@ -591,7 +591,7 @@ public class Engine {
             }
             if (lastCommandParsed.equals("disable")) {
                 locationOn = false;
-                TextEngine.printWithDelays("Location based services have been disabled.", false);
+                TextEngine.printWithDelays("Location based services have been disabled.", false, true);
                 getNextCommand();
                 if (lastCommandParsed == null) {
                     return;
@@ -600,39 +600,39 @@ public class Engine {
             if (lastCommandParsed.equals("set")) {
                 getNextCommand();
                 if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                     return;
                 }
                 weatherAPIPromptEngine.setLatitude(lastCommandParsed);
                 getNextCommand();
                 if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                     return;
                 }
                 weatherAPIPromptEngine.setLongitude(lastCommandParsed);
                 weatherAPIPromptEngine.refreshWeather();
-                TextEngine.printWithDelays("Location successfully set. Latitude: " + weatherAPIPromptEngine.getLatitude() + " Longetude: " + weatherAPIPromptEngine.getLongitude(), false);
+                TextEngine.printWithDelays("Location successfully set. Latitude: " + weatherAPIPromptEngine.getLatitude() + " Longetude: " + weatherAPIPromptEngine.getLongitude(), false, true);
                 return;
             }
-            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
         }
         if (lastCommandParsed.equals("chat")) {
             getNextCommand();
             if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                 return;
             }
             if (lastCommandParsed.equals("history")) {
                 getNextCommand();
                 if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                     return;
                 }
                 if (lastCommandParsed.equals("disable")) {
                     incognitoChatMode = true;
                     savedChatCache = new ArrayList<>();
                     openAIPromptEngine.setChatCache(savedChatCache);
-                    TextEngine.printNoDelay("Incognito mode enabled.", false);
+                    TextEngine.printNoDelay("Incognito mode enabled.", false, true);
                     getNextCommand();
                     if (lastCommandParsed == null) {
                         return;
@@ -640,7 +640,7 @@ public class Engine {
                 }
                 if (lastCommandParsed.equals("enable")) {
                     incognitoChatMode = false;
-                    TextEngine.printNoDelay("Incognito mode disabled.", false);
+                    TextEngine.printNoDelay("Incognito mode disabled.", false, true);
                     getNextCommand();
                     if (lastCommandParsed == null) {
                         return;
@@ -648,24 +648,24 @@ public class Engine {
                 }
                 if (lastCommandParsed.equals("save")) {
                     savedChatCache = openAIPromptEngine.getChatCache();
-                    TextEngine.printWithDelays("Chat history saved.", false);
+                    TextEngine.printWithDelays("Chat history saved.", false, true);
                     return;
                 }
                 if (lastCommandParsed.equals("clear")) {
                     openAIPromptEngine.clearChatCache();
                     savedChatCache = new ArrayList<>();
-                    TextEngine.printWithDelays("Chat history cleared.", false);
+                    TextEngine.printWithDelays("Chat history cleared.", false, true);
                     return;
                 }
                 if (lastCommandParsed.equals("showonlaunch")) {
                     getNextCommand();
                     if (lastCommandParsed == null) {
-                        TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                        TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                         return;
                     }
                     if (lastCommandParsed.equals("enable")) {
                         showChatHistoryOnLaunch = true;
-                        TextEngine.printWithDelays("Chat history will be shown on launch.", false);
+                        TextEngine.printWithDelays("Chat history will be shown on launch.", false, true);
                         getNextCommand();
                         if (lastCommandParsed == null) {
                             return;
@@ -673,7 +673,7 @@ public class Engine {
                     }
                     if (lastCommandParsed.equals("disable")) {
                         showChatHistoryOnLaunch = false;
-                        TextEngine.printWithDelays("Chat history will not be shown on launch.", false);
+                        TextEngine.printWithDelays("Chat history will not be shown on launch.", false, true);
                         getNextCommand();
                         if (lastCommandParsed == null) {
                             return;
@@ -686,20 +686,20 @@ public class Engine {
             if (lastCommandParsed.equals("cache")) {
                 getNextCommand();
                 if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                     return;
                 }
                 if (lastCommandParsed.equals("enable")) {
-                    openAIPromptEngine.setUseCache(true);
-                    TextEngine.printWithDelays("Chat cache enabled.", false);
+                    usingChatCache = true;
+                    TextEngine.printWithDelays("Chat cache enabled.", false, true);
                     getNextCommand();
                     if (lastCommandParsed == null) {
                         return;
                     }
                 }
                 if (lastCommandParsed.equals("disable")) {
-                    openAIPromptEngine.setUseCache(false);
-                    TextEngine.printWithDelays("Chat cache disabled.", false);
+                    usingChatCache = false;
+                    TextEngine.printWithDelays("Chat cache disabled.", false, true);
                     getNextCommand();
                     if (lastCommandParsed == null) {
                         return;
@@ -708,21 +708,21 @@ public class Engine {
                 if (lastCommandParsed.equals("clear")) {
                     openAIPromptEngine.clearChatCache();
                     savedChatCache = new ArrayList<>();
-                    TextEngine.printWithDelays("Chat history cleared.", false);
+                    TextEngine.printWithDelays("Chat history cleared.", false, true);
                     return;
                 }
             }
-            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
         }
         if (lastCommandParsed.equals("testing")) {
             getNextCommand();
             if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                 return;
             }
             if (lastCommandParsed.equals("enable")) {
                 TESTING = true;
-                TextEngine.printWithDelays("Testing mode enabled.", false);
+                TextEngine.printWithDelays("Testing mode enabled.", false, true);
                 getNextCommand();
                 if (lastCommandParsed == null) {
                     return;
@@ -730,7 +730,7 @@ public class Engine {
             }
             if (lastCommandParsed.equals("disable")) {
                 TESTING = false;
-                TextEngine.printWithDelays("Testing mode disabled.", false);
+                TextEngine.printWithDelays("Testing mode disabled.", false, true);
                 getNextCommand();
                 if (lastCommandParsed == null) {
                     return;
@@ -740,7 +740,7 @@ public class Engine {
         if (lastCommandParsed.equals("textspeed")) {
             getNextCommand();
             if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                 return;
             }
             TextEngine.setSpeedSetting(lastCommandParsed);
@@ -750,7 +750,7 @@ public class Engine {
         if (lastCommandParsed.equals("defaultentry")) {
             getNextCommand();
             if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                 return;
             }
             if (lastCommandParsed.equals("ai")) {
@@ -765,6 +765,29 @@ public class Engine {
             }
             System.out.println("Unknown command. No given ARGS. Try 'help'");
         }
+        if (lastCommandParsed.equals("textbuffer")) {
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+                return;
+            }
+            if (lastCommandParsed.equals("enable")) {
+                textBuffer = true;
+                TextEngine.printWithDelays("Text buffer enabled.", false, true);
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    return;
+                }
+            }
+            if (lastCommandParsed.equals("disable")) {
+                textBuffer = false;
+                TextEngine.printWithDelays("Text buffer disabled.", false, true);
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    return;
+                }
+            }
+        }
         if (lastCommandParsed.equals("help")) {
             System.out.println("Commands: ");
             System.out.println("startup: add [ARGS] [ARGS], remove [ARGS], clear, enable, disable, list, runall");
@@ -774,21 +797,21 @@ public class Engine {
             System.out.println("defaultentry: ai, terminal");
             return;
         }
-        TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false);
+        TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
     }
 
     private static void chatProcess(String message) {
         System.out.println();
         if (message == null || message.isEmpty()) {
-            TextEngine.printWithDelays(AI_CHAT_HEADER + "Invalid input. Please try again.", false);
+            TextEngine.printWithDelays(AI_CHAT_HEADER + "Invalid input. Please try again.", false, true);
             return;
         }
         if (openAIPromptEngine.getAPIKey() == null || openAIPromptEngine.getAPIKey().isEmpty()) {
-            TextEngine.printWithDelays(AI_CHAT_HEADER + "There is no OpenAPI key set.", false);
+            TextEngine.printWithDelays(AI_CHAT_HEADER + "There is no OpenAPI key set.", false, true);
             return;
         }
-        String response = openAIPromptEngine.buildPromptAndReturnResponce(message);
-        TextEngine.printWithDelays(GREEN_COLOR_BOLD + "ChatGPT: " + RESET_COLOR + response, false);
+        String response = openAIPromptEngine.buildPromptAndReturnResponce(message, !usingChatCache);
+        TextEngine.printWithDelays(GREEN_COLOR_BOLD + "ChatGPT: " + RESET_COLOR + response, false, true);
         System.out.println();
     }
 
@@ -806,14 +829,14 @@ public class Engine {
     private static void exit() {
         if (!incognitoChatMode) {
             if (!openAIPromptEngine.getChatCache().isEmpty()) {
-                TextEngine.printWithDelays(AI_CHAT_HEADER + "Would you like to save the chat history? 'y' or 'n'", true);
+                TextEngine.printWithDelays(AI_CHAT_HEADER + "Would you like to save the chat history? 'y' or 'n'", textBuffer, false);
                 if ("y".equals(console.readLine().trim().toLowerCase())) {
                     savedChatCache = openAIPromptEngine.getChatCache();
-                    TextEngine.printWithDelays(AI_CHAT_HEADER + "Chat history saved.", false);
+                    TextEngine.printWithDelays(AI_CHAT_HEADER + "Chat history saved.", false, true);
                 } else {
                     openAIPromptEngine.clearChatCache();
                     savedChatCache = new ArrayList<>();
-                    TextEngine.printWithDelays(AI_CHAT_HEADER + "Chat history cleared.", false);
+                    TextEngine.printWithDelays(AI_CHAT_HEADER + "Chat history cleared.", false, true);
                 }
             }
         } else {
@@ -821,7 +844,7 @@ public class Engine {
             savedChatCache = new ArrayList<>();
         }
         writeUserData();
-        TextEngine.printWithDelays("Exiting...", false);
+        TextEngine.printWithDelays("Exiting...", false, true);
         TextEngine.clearScreen();
         System.exit(0);
     }

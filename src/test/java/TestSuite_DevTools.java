@@ -125,14 +125,14 @@ public class TestSuite_DevTools {
     public void testPromptEngineReceiveInput() {
         prompt = new OpenAIPromptEngine(API_KEY_FOR_TESTING);
         String message = "This is a test message to verify connection to OPENAI API.";
-        assertTrue(prompt.buildPromptAndReturnResponce(message) != null && !"AI generation is disabled. You can enable it in settings.\n".equals(prompt.buildPromptAndReturnResponce(message)));
+        assertTrue(prompt.buildPromptAndReturnResponce(message, false) != null && !"AI generation is disabled. You can enable it in settings.\n".equals(prompt.buildPromptAndReturnResponce(message, false)));
     }
 
     @Test
     public void testPromptCachedMessage() {
         prompt = new OpenAIPromptEngine(API_KEY_FOR_TESTING);
         String message = "This is a test message to verify connection to OPENAI API.";
-        prompt.buildPromptAndReturnNoResponce(message);
+        prompt.buildPromptAndReturnNoResponce(message, false);
         assertEquals(message, prompt.getLastPromptUsed());
     }
 
@@ -140,7 +140,7 @@ public class TestSuite_DevTools {
     public void testPromptCachedMessage0() {
         prompt = new OpenAIPromptEngine(API_KEY_FOR_TESTING);
         String message = "This is a test message to verify connection to OPENAI API.";
-        prompt.buildPromptAndReturnNoResponce(message);
+        prompt.buildPromptAndReturnNoResponce(message, false);
         assertEquals("This is a test message to verify connection to OPENAI API.", prompt.getLastPromptUsed());
     }
 
@@ -148,7 +148,7 @@ public class TestSuite_DevTools {
     public void testPromptEngineReceiveInput1() {
         prompt = new OpenAIPromptEngine(API_KEY_FOR_TESTING);
         String message = "This is a test message to verify connection to OPENAI API.";
-        String received = prompt.buildPromptAndReturnResponce(message);
+        String received = prompt.buildPromptAndReturnResponce(message, false);
         assertTrue(received != null && !received.equals("") && !received.equals("AI generation is disabled. You can enable it in settings.\n"));
     }
 

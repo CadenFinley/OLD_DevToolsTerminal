@@ -32,7 +32,6 @@ public class OpenAIPromptEngine {
     private String lastPromptUsed = "";
     private String lastResponseReceived = "";
     private final List<String> chatCache;
-    private boolean useCache = true;
     private Map<String, Object> responseDataMap;
 
     public OpenAIPromptEngine(String apiKey) {
@@ -44,37 +43,45 @@ public class OpenAIPromptEngine {
         chatCache = new ArrayList<>();
     }
 
-    public String buildPromptAndReturnResponce(String message) {
+    public String buildPromptAndReturnResponce(String message, boolean usingChatCache) {
         if (USER_API_KEY == null) {
             return "API key not set.";
         }
         if (message == null || message.isEmpty()) {
             return "User's message is empty.";
         }
-        String response = chatGPT(message);
-        chatCache.add("User: " + message);
-        if (response != null && !response.isEmpty()) {
-            chatCache.add("ChatGPT: " + response);
+        String response = chatGPT(message, usingChatCache);
+        if (usingChatCache) {
+            chatCache.add("User: " + message);
+            if (response != null && !response.isEmpty()) {
+                chatCache.add("ChatGPT: " + response);
+            }
         }
         return response;
     }
 
-    public void buildPromptAndReturnNoResponce(String message) {
+    public void buildPromptAndReturnNoResponce(String message, boolean usingChatCache) {
         if (USER_API_KEY == null) {
             System.out.println("OpenAI: " + System.currentTimeMillis() + "API key not set.");
             return;
         }
-        chatGPT(message);
+        String response = chatGPT(message, usingChatCache);
+        if (usingChatCache) {
+            chatCache.add("User: " + message);
+            if (response != null && !response.isEmpty()) {
+                chatCache.add("ChatGPT: " + response);
+            }
+        }
     }
 
-    private String chatGPT(String message) {
+    private String chatGPT(String message, boolean usingChatCache) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<String> future = executor.submit(() -> {
             String url = "https://api.openai.com/v1/chat/completions";
             String apiKey = USER_API_KEY; // API key goes here
             String model = "gpt-3.5-turbo";
             String sentMessage;
-            if (useCache && !lastPromptUsed.equals("")) {
+            if (usingChatCache && !lastPromptUsed.equals("")) {
                 sentMessage = "These are the previous messages from this conversation: '" + chatCache.toString().trim() + "' This is the users response based on the previous conversation: '" + message + "'";
             } else {
                 sentMessage = message;
@@ -209,14 +216,6 @@ public class OpenAIPromptEngine {
     public void setChatCache(List<String> chatCache) {
         this.chatCache.clear();
         this.chatCache.addAll(chatCache);
-    }
-
-    public boolean isUseCache() {
-        return useCache;
-    }
-
-    public void setUseCache(boolean useCache) {
-        this.useCache = useCache;
     }
 
     public String getResponseData(String key) {

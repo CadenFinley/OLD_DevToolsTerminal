@@ -67,14 +67,14 @@ public abstract class TextEngine {
         }
     }
 
-    public static void printWithDelays(String data, boolean buffer) {
+    public static void printWithDelays(String data, boolean inputBuffer, boolean newLine) {
         boolean needToBreak = false;
-        // Use buffer if you are accepting input after the text is printed
+        // Use inputBuffer if you are accepting input after the text is printed
         if (speedSetting.equals("nodelay") || Engine.TESTING) {
-            printNoDelay(data, buffer);
+            printNoDelay(data, inputBuffer, newLine);
             return;
         }
-        if (buffer) {
+        if (inputBuffer) {
             data = data + yellowColor + " (press enter to type)" + resetColor;
         }
         int currentLineWidth = 0; // Initialize the current line width
@@ -84,7 +84,7 @@ public abstract class TextEngine {
             if (word.contains("\\")) {
                 needToBreak = true;
             }
-            if (buffer) {
+            if (inputBuffer) {
                 if ((currentLineWidth + word.length() >= MAX_LINE_WIDTH + 30) && currentLineWidth != 0) {
                     System.out.print('\n');
                     currentLineWidth = 0;
@@ -135,18 +135,18 @@ public abstract class TextEngine {
                 //remainingChars.deleteCharAt(0); // Remove the printed space from remainingChars
             }
         }
-        if (data.charAt(data.length() - 1) != '\n' && !buffer) {
+        if (newLine) {
             System.out.print('\n');
         }
-        if (buffer) {
+        if (inputBuffer) {
             console.readLine();
             System.out.print(greenColor + "> " + resetColor);
         }
     }
 
-    public static void printNoDelay(String data, boolean buffer) { //use buffer is you are accepting input after the text is printed
+    public static void printNoDelay(String data, boolean inputBuffer, boolean newLine) { //use inputBuffer is you are accepting input after the text is printed
         boolean needToBreak = false;
-        if (buffer) {
+        if (inputBuffer) {
             data = data + yellowColor + " (press enter to type)" + resetColor;
         }
         int currentLineWidth = 0; // Initialize the current line width
@@ -156,7 +156,7 @@ public abstract class TextEngine {
             if (word.contains("\\")) {
                 needToBreak = true;
             }
-            if (buffer) {
+            if (inputBuffer) {
                 if ((currentLineWidth + word.length() >= MAX_LINE_WIDTH + 30) && currentLineWidth != 0) {
                     System.out.print('\n');
                     currentLineWidth = 0;
@@ -189,10 +189,10 @@ public abstract class TextEngine {
                 //remainingChars.deleteCharAt(0); // Remove the printed space from remainingChars
             }
         }
-        if (data.charAt(data.length() - 1) != '\n' && !buffer) {
+        if (newLine) {
             System.out.print('\n');
         }
-        if (buffer) {
+        if (inputBuffer) {
             console.readLine();
             System.out.print(greenColor + "> " + resetColor);
         }
@@ -224,7 +224,7 @@ public abstract class TextEngine {
         if (Engine.TESTING) {
             return;
         }
-        printNoDelay(yellowColor + "Press Enter to continue" + resetColor, false);
+        printNoDelay(yellowColor + "Press Enter to continue" + resetColor, false, false);
         console.readLine();
     }
 
