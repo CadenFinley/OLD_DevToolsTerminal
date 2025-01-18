@@ -207,26 +207,7 @@ public class Engine {
             return;
         }
         if (command.startsWith("ss")) {
-            if (!shotcutsEnabled) {
-                System.out.println("Shortcuts are disabled.");
-                return;
-            }
-            if (shortcuts != null && !shortcuts.isEmpty()) {
-                command = command.substring(2);
-                //System.out.println("Shortcut: " + command);
-                if (command.isBlank() || command.isEmpty() || command.equals(" ")) {
-                    System.out.println("No shortcut given.");
-                    return;
-                }
-                String strippedCommand = command.trim();
-                if (shortcuts.containsKey(strippedCommand)) {
-                    shortcutProcesser(strippedCommand);
-                } else {
-                    System.out.println("No command for given shortcut.");
-                }
-            } else {
-                System.out.println("No shortcuts.");
-            }
+            shortcutProcesser(command);
             return;
         }
         if (command.startsWith(".")) {
@@ -241,9 +222,26 @@ public class Engine {
     }
 
     private static void shortcutProcesser(String command) {
-        String shortcut = shortcuts.get(command);
-        //System.out.println("Shortcut: " + shortcut);
-        commandProcesser(shortcut);
+        if (!shotcutsEnabled) {
+            System.out.println("Shortcuts are disabled.");
+            return;
+        }
+        if (shortcuts != null && !shortcuts.isEmpty()) {
+            command = command.substring(2);
+            //System.out.println("Shortcut: " + command);
+            if (command.isBlank() || command.isEmpty() || command.equals(" ")) {
+                System.out.println("No shortcut given.");
+                return;
+            }
+            String strippedCommand = command.trim();
+            if (shortcuts.containsKey(strippedCommand)) {
+                commandProcesser(shortcuts.get(strippedCommand));
+            } else {
+                System.out.println("No command for given shortcut.");
+            }
+        } else {
+            System.out.println("No shortcuts.");
+        }
     }
 
     private static void commandProcesser(String command) {
@@ -267,8 +265,7 @@ public class Engine {
                 String strippedCommand;
                 try {
                     strippedCommand = command.substring(9);
-                    String reCombinedString = recombineTerminalCommand(strippedCommand);
-                    sendTerminalCommand(reCombinedString);
+                    sendTerminalCommand(strippedCommand);
                 } catch (StringIndexOutOfBoundsException e) {
                     defaultTextEntryOnAI = false;
                     return;
@@ -288,20 +285,6 @@ public class Engine {
             default ->
                 TextEngine.printWithDelays("Unknown command. Please try again. Type 'help' or '.help' if you need help", false, true);
         }
-    }
-
-    private static String recombineTerminalCommand(String command) {
-        String[] parts = command.split(" ");
-        StringBuilder recombined = new StringBuilder();
-        for (int i = 0; i < parts.length; i++) {
-            if (parts[i].equals("cd") && i + 1 < parts.length && parts[i + 1].equals("..")) {
-                recombined.append("cd .. ");
-                i++; // Skip the next part as it's already combined
-            } else {
-                recombined.append(parts[i]).append(" ");
-            }
-        }
-        return recombined.toString().trim();
     }
 
     private static void sendTerminalCommand(String command) {
@@ -396,200 +379,20 @@ public class Engine {
             return;
         }
         if (lastCommandParsed.equals("startup")) {
-            getNextCommand();
-            if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                return;
-            }
-            if (lastCommandParsed.equals("add")) {
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                    return;
-                }
-                startupCommands.add(lastCommandParsed);
-                String commandAdded = lastCommandParsed;
-                TextEngine.printWithDelays("Command added to startup commands.", false, true);
-                if (startupCommands != null && !startupCommands.isEmpty()) {
-                    System.out.println("Startup commands:");
-                    for (String command : startupCommands) {
-                        TextEngine.printNoDelay(command, false, true);
-                    }
-                } else {
-                    System.out.println("No startup commands.");
-                }
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    return;
-                }
-                if (lastCommandParsed.equals("run")) {
-                    commandParser("." + commandAdded);
-                    return;
-                }
-                System.out.println("Unknown command. No given ARGS. Try 'help'");
-            }
-            if (lastCommandParsed.equals("remove")) {
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                    return;
-                }
-                startupCommands.remove(lastCommandParsed);
-                TextEngine.printWithDelays("Command removed from startup commands.", false, true);
-                if (startupCommands != null && !startupCommands.isEmpty()) {
-                    System.out.println("Startup commands:");
-                    for (String command : startupCommands) {
-                        TextEngine.printNoDelay(command, false, true);
-                    }
-                } else {
-                    System.out.println("No startup commands.");
-                }
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    return;
-                }
-            }
-            if (lastCommandParsed.equals("clear")) {
-                startupCommands = new ArrayList<>();
-                TextEngine.printWithDelays("Startup commands cleared.", false, true);
-                if (startupCommands != null && !startupCommands.isEmpty()) {
-                    System.out.println("Startup commands:");
-                    for (String command : startupCommands) {
-                        TextEngine.printNoDelay(command, false, true);
-                    }
-                } else {
-                    System.out.println("No startup commands.");
-                }
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    return;
-                }
-            }
-            if (lastCommandParsed.equals("enable")) {
-                startCommandsOn = true;
-                TextEngine.printWithDelays("Startup commands enabled.", false, true);
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    return;
-                }
-            }
-            if (lastCommandParsed.equals("disable")) {
-                startCommandsOn = false;
-                TextEngine.printWithDelays("Startup commands disabled.", false, true);
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    return;
-                }
-            }
-            if (lastCommandParsed.equals("list")) {
-                if (startupCommands != null && !startupCommands.isEmpty()) {
-                    System.out.println("Startup commands:");
-                    for (String command : startupCommands) {
-                        TextEngine.printNoDelay(command, false, true);
-                    }
-                } else {
-                    System.out.println("No startup commands.");
-                }
-                return;
-            }
-            if (lastCommandParsed.equals("runall")) {
-                if (startupCommands != null && !startupCommands.isEmpty()) {
-                    System.out.println("Running startup commands...");
-                    for (String command : startupCommands) {
-                        commandParser("." + command);
-                    }
-                } else {
-                    System.out.println("No startup commands.");
-                }
-                return;
-            }
-            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-        }
-        if (lastCommandParsed.equals("data")) {
-            getNextCommand();
-            if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                return;
-            }
-            if (lastCommandParsed.equals("get")) {
-                System.out.println(readAndReturnUserDataFile());
-                return;
-            }
-            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+            startupCommands();
+            return;
         }
         if (lastCommandParsed.equals("chat")) {
-            getNextCommand();
-            if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                return;
-            }
-            if (lastCommandParsed.equals("history")) {
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                    return;
-                }
-                if (lastCommandParsed.equals("disable")) {
-                    incognitoChatMode = true;
-                    savedChatCache = new ArrayList<>();
-                    openAIPromptEngine.setChatCache(savedChatCache);
-                    TextEngine.printNoDelay("Incognito mode enabled.", false, true);
-                    getNextCommand();
-                    if (lastCommandParsed == null) {
-                        return;
-                    }
-                }
-                if (lastCommandParsed.equals("enable")) {
-                    incognitoChatMode = false;
-                    TextEngine.printNoDelay("Incognito mode disabled.", false, true);
-                    getNextCommand();
-                    if (lastCommandParsed == null) {
-                        return;
-                    }
-                }
-                if (lastCommandParsed.equals("save")) {
-                    savedChatCache = openAIPromptEngine.getChatCache();
-                    TextEngine.printWithDelays("Chat history saved.", false, true);
-                    return;
-                }
-                if (lastCommandParsed.equals("clear")) {
-                    openAIPromptEngine.clearChatCache();
-                    savedChatCache = new ArrayList<>();
-                    TextEngine.printWithDelays("Chat history cleared.", false, true);
-                    return;
-                }
-                System.out.println("Unknown command. No given ARGS. Try 'help'");
-            }
-            if (lastCommandParsed.equals("cache")) {
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                    return;
-                }
-                if (lastCommandParsed.equals("enable")) {
-                    usingChatCache = true;
-                    TextEngine.printWithDelays("Chat cache enabled.", false, true);
-                    getNextCommand();
-                    if (lastCommandParsed == null) {
-                        return;
-                    }
-                }
-                if (lastCommandParsed.equals("disable")) {
-                    usingChatCache = false;
-                    TextEngine.printWithDelays("Chat cache disabled.", false, true);
-                    getNextCommand();
-                    if (lastCommandParsed == null) {
-                        return;
-                    }
-                }
-                if (lastCommandParsed.equals("clear")) {
-                    openAIPromptEngine.clearChatCache();
-                    savedChatCache = new ArrayList<>();
-                    TextEngine.printWithDelays("Chat history cleared.", false, true);
-                    return;
-                }
-            }
-            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+            aiChatCommands();
+            return;
+        }
+        if (lastCommandParsed.equals("text")) {
+            textCommands();
+            return;
+        }
+        if (lastCommandParsed.equals("shortcut")) {
+            shortcutCommands();
+            return;
         }
         if (lastCommandParsed.equals("testing")) {
             getNextCommand();
@@ -613,6 +416,315 @@ public class Engine {
                     return;
                 }
             }
+            System.out.println("Unknown command. No given ARGS. Try 'help'");
+            return;
+        }
+        if (lastCommandParsed.equals("data")) {
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+                return;
+            }
+            if (lastCommandParsed.equals("get")) {
+                System.out.println(readAndReturnUserDataFile());
+                return;
+            }
+            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+            return;
+        }
+        if (lastCommandParsed.equals("help")) {
+            System.out.println("Commands: ");
+            System.out.println("startup: add [ARGS], remove [ARGS], clear, enable, disable, list, runall");
+            System.out.println("chat: history enable, history disable, history save, history clear, cache enable, cache disable, cache clear");
+            System.out.println("text: textspeed [ARGS], textbuffer enable, textbuffer disable, defaultentry ai, defaultentry terminal");
+            System.out.println("shortcut: clear, enable, disable, add [ARGS], remove [ARGS], list");
+            System.out.println("testing: enable, disable");
+            System.out.println("data: get");
+            return;
+        }
+        TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+    }
+
+    private static void startupCommands() {
+        getNextCommand();
+        if (lastCommandParsed == null) {
+            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+            return;
+        }
+        if (lastCommandParsed.equals("add")) {
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+                return;
+            }
+            startupCommands.add(lastCommandParsed);
+            String commandAdded = lastCommandParsed;
+            TextEngine.printWithDelays("Command added to startup commands.", false, true);
+            if (startupCommands != null && !startupCommands.isEmpty()) {
+                System.out.println("Startup commands:");
+                for (String command : startupCommands) {
+                    TextEngine.printNoDelay(command, false, true);
+                }
+            } else {
+                System.out.println("No startup commands.");
+            }
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                return;
+            }
+            if (lastCommandParsed.equals("run")) {
+                commandParser("." + commandAdded);
+                return;
+            }
+            System.out.println("Unknown command. No given ARGS. Try 'help'");
+        }
+        if (lastCommandParsed.equals("remove")) {
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+                return;
+            }
+            startupCommands.remove(lastCommandParsed);
+            TextEngine.printWithDelays("Command removed from startup commands.", false, true);
+            if (startupCommands != null && !startupCommands.isEmpty()) {
+                System.out.println("Startup commands:");
+                for (String command : startupCommands) {
+                    TextEngine.printNoDelay(command, false, true);
+                }
+            } else {
+                System.out.println("No startup commands.");
+            }
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                return;
+            }
+        }
+        if (lastCommandParsed.equals("clear")) {
+            startupCommands = new ArrayList<>();
+            TextEngine.printWithDelays("Startup commands cleared.", false, true);
+            if (startupCommands != null && !startupCommands.isEmpty()) {
+                System.out.println("Startup commands:");
+                for (String command : startupCommands) {
+                    TextEngine.printNoDelay(command, false, true);
+                }
+            } else {
+                System.out.println("No startup commands.");
+            }
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                return;
+            }
+        }
+        if (lastCommandParsed.equals("enable")) {
+            startCommandsOn = true;
+            TextEngine.printWithDelays("Startup commands enabled.", false, true);
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                return;
+            }
+        }
+        if (lastCommandParsed.equals("disable")) {
+            startCommandsOn = false;
+            TextEngine.printWithDelays("Startup commands disabled.", false, true);
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                return;
+            }
+        }
+        if (lastCommandParsed.equals("list")) {
+            if (startupCommands != null && !startupCommands.isEmpty()) {
+                System.out.println("Startup commands:");
+                for (String command : startupCommands) {
+                    TextEngine.printNoDelay(command, false, true);
+                }
+            } else {
+                System.out.println("No startup commands.");
+            }
+            return;
+        }
+        if (lastCommandParsed.equals("runall")) {
+            if (startupCommands != null && !startupCommands.isEmpty()) {
+                System.out.println("Running startup commands...");
+                for (String command : startupCommands) {
+                    commandParser("." + command);
+                }
+            } else {
+                System.out.println("No startup commands.");
+            }
+            return;
+        }
+        if (lastCommandParsed.equals("help")) {
+            System.out.println("Commands:");
+            System.out.println("add [ARGS], remove [ARGS], clear, enable, disable, list, runall");
+            return;
+        }
+    }
+
+    private static void aiChatCommands() {
+        getNextCommand();
+        if (lastCommandParsed == null) {
+            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+            return;
+        }
+        if (lastCommandParsed.equals("history")) {
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+                return;
+            }
+            if (lastCommandParsed.equals("disable")) {
+                incognitoChatMode = true;
+                savedChatCache = new ArrayList<>();
+                openAIPromptEngine.setChatCache(savedChatCache);
+                TextEngine.printNoDelay("Incognito mode enabled.", false, true);
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    return;
+                }
+            }
+            if (lastCommandParsed.equals("enable")) {
+                incognitoChatMode = false;
+                TextEngine.printNoDelay("Incognito mode disabled.", false, true);
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    return;
+                }
+            }
+            if (lastCommandParsed.equals("save")) {
+                savedChatCache = openAIPromptEngine.getChatCache();
+                TextEngine.printWithDelays("Chat history saved.", false, true);
+                return;
+            }
+            if (lastCommandParsed.equals("clear")) {
+                openAIPromptEngine.clearChatCache();
+                savedChatCache = new ArrayList<>();
+                TextEngine.printWithDelays("Chat history cleared.", false, true);
+                return;
+            }
+        }
+        if (lastCommandParsed.equals("cache")) {
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+                return;
+            }
+            if (lastCommandParsed.equals("enable")) {
+                usingChatCache = true;
+                TextEngine.printWithDelays("Chat cache enabled.", false, true);
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    return;
+                }
+            }
+            if (lastCommandParsed.equals("disable")) {
+                usingChatCache = false;
+                TextEngine.printWithDelays("Chat cache disabled.", false, true);
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    return;
+                }
+            }
+            if (lastCommandParsed.equals("clear")) {
+                openAIPromptEngine.clearChatCache();
+                savedChatCache = new ArrayList<>();
+                TextEngine.printWithDelays("Chat history cleared.", false, true);
+                return;
+            }
+        }
+        if (lastCommandParsed.equals("help")) {
+            System.out.println("Commands:");
+            System.out.println("history: disable, enable, save, clear");
+            System.out.println("cache: enable, disable, clear");
+            return;
+        }
+    }
+
+    private static void shortcutCommands() {
+        getNextCommand();
+        if (lastCommandParsed == null) {
+            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+            return;
+        }
+        if (lastCommandParsed.equals("clear")) {
+            shortcuts = new HashMap<>();
+            TextEngine.printWithDelays("Shortcuts cleared.", false, true);
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                return;
+            }
+        }
+        if (lastCommandParsed.equals("enable")) {
+            shotcutsEnabled = true;
+            TextEngine.printWithDelays("Shortcuts enabled.", false, true);
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                return;
+            }
+        }
+        if (lastCommandParsed.equals("disable")) {
+            shotcutsEnabled = false;
+            TextEngine.printWithDelays("Shortcuts disabled.", false, true);
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                return;
+            }
+        }
+        if (lastCommandParsed.equals("add")) {
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+                return;
+            }
+            String shortcut = lastCommandParsed;
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+                return;
+            }
+            String command = lastCommandParsed;
+            shortcuts.put(shortcut, command);
+            TextEngine.printWithDelays("Shortcut added.", false, true);
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                return;
+            }
+        }
+        if (lastCommandParsed.equals("remove")) {
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+                return;
+            }
+            shortcuts.remove(lastCommandParsed);
+            TextEngine.printWithDelays("Shortcut removed.", false, true);
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                return;
+            }
+        }
+        if (lastCommandParsed.equals("list")) {
+            if (shortcuts != null && !shortcuts.isEmpty()) {
+                System.out.println("Shortcuts:");
+                for (Map.Entry<String, String> entry : shortcuts.entrySet()) {
+                    TextEngine.printNoDelay(entry.getKey() + " = " + entry.getValue(), false, true);
+                }
+            } else {
+                System.out.println("No shortcuts.");
+            }
+            return;
+        }
+        if (lastCommandParsed.equals("help")) {
+            System.out.println("Commands:");
+            System.out.println("clear, enable, disable, add [ARGS], remove [ARGS], list");
+            return;
+        }
+    }
+
+    private static void textCommands() {
+        getNextCommand();
+        if (lastCommandParsed == null) {
+            TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+            return;
         }
         if (lastCommandParsed.equals("textspeed")) {
             getNextCommand();
@@ -622,25 +734,10 @@ public class Engine {
             }
             TextEngine.setSpeedSetting(lastCommandParsed);
             System.out.println("Text speed set to " + TextEngine.getSpeedSetting());
-            return;
-        }
-        if (lastCommandParsed.equals("defaultentry")) {
             getNextCommand();
             if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                 return;
             }
-            if (lastCommandParsed.equals("ai")) {
-                System.out.println("Default text entry set to AI.");
-                defaultTextEntryOnAI = true;
-                return;
-            }
-            if (lastCommandParsed.equals("terminal")) {
-                System.out.println("Default text entry set to terminal.");
-                defaultTextEntryOnAI = false;
-                return;
-            }
-            System.out.println("Unknown command. No given ARGS. Try 'help'");
         }
         if (lastCommandParsed.equals("textbuffer")) {
             getNextCommand();
@@ -665,84 +762,29 @@ public class Engine {
                 }
             }
         }
-        if (lastCommandParsed.equals("shortcut")) {
+        if (lastCommandParsed.equals("defaultentry")) {
             getNextCommand();
             if (lastCommandParsed == null) {
                 TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                 return;
             }
-            if (lastCommandParsed.equals("enable")) {
-                shotcutsEnabled = true;
-                TextEngine.printWithDelays("Shortcuts enabled.", false, true);
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    return;
-                }
+            if (lastCommandParsed.equals("ai")) {
+                System.out.println("Default text entry set to AI.");
+                defaultTextEntryOnAI = true;
+                return;
             }
-            if (lastCommandParsed.equals("disable")) {
-                shotcutsEnabled = false;
-                TextEngine.printWithDelays("Shortcuts disabled.", false, true);
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    return;
-                }
-            }
-            if (lastCommandParsed.equals("add")) {
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                    return;
-                }
-                String shortcut = lastCommandParsed;
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                    return;
-                }
-                String command = lastCommandParsed;
-                shortcuts.put(shortcut, command);
-                TextEngine.printWithDelays("Shortcut added.", false, true);
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    return;
-                }
-            }
-            if (lastCommandParsed.equals("remove")) {
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                    return;
-                }
-                shortcuts.remove(lastCommandParsed);
-                TextEngine.printWithDelays("Shortcut removed.", false, true);
-                getNextCommand();
-                if (lastCommandParsed == null) {
-                    return;
-                }
-            }
-            if (lastCommandParsed.equals("list")) {
-                if (shortcuts != null && !shortcuts.isEmpty()) {
-                    System.out.println("Shortcuts:");
-                    for (Map.Entry<String, String> entry : shortcuts.entrySet()) {
-                        TextEngine.printNoDelay(entry.getKey() + " = " + entry.getValue(), false, true);
-                    }
-                } else {
-                    System.out.println("No shortcuts.");
-                }
+            if (lastCommandParsed.equals("terminal")) {
+                System.out.println("Default text entry set to terminal.");
+                defaultTextEntryOnAI = false;
                 return;
             }
             System.out.println("Unknown command. No given ARGS. Try 'help'");
-        }
-        if (lastCommandParsed.equals("help")) {
-            System.out.println("Commands: ");
-            System.out.println("startup: add [ARGS] [ARGS], remove [ARGS], clear, enable, disable, list, runall");
-            System.out.println("data: get");
-            System.out.println("chat: history, cache, testing, textspeed");
-            System.out.println("defaultentry: ai, terminal");
-            System.out.println("textbuffer: enable, disable");
             return;
         }
-        TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+        if (lastCommandParsed.equals("help")) {
+            System.out.println("Commands:");
+            System.out.println("textspeed [ARGS], textbuffer enable, textbuffer disable, defaultentry ai, defaultentry terminal");
+        }
     }
 
     private static void chatProcess(String message) {
