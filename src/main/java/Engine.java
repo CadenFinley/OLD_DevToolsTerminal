@@ -48,6 +48,7 @@ public class Engine {
     private static Map<String, String> shortcuts;
 
     public static void main(String[] args) {
+        openTerminalWindow();
         TextEngine.clearScreen();
         TextEngine.printWithDelays("Loading...", false, true);
         TextEngine.setWidth();
@@ -96,6 +97,23 @@ public class Engine {
             }
             String command = console.readLine();
             commandParser(command);
+        }
+    }
+
+    private static void openTerminalWindow() {
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+            ProcessBuilder processBuilder;
+            if (os.contains("win")) {
+                processBuilder = new ProcessBuilder("cmd.exe", "/c", "start cmd.exe /k java -cp . Engine");
+            } else if (os.contains("mac")) {
+                processBuilder = new ProcessBuilder("open", "-a", "Terminal", "java -cp . Engine");
+            } else {
+                processBuilder = new ProcessBuilder("x-terminal-emulator", "-e", "java -cp . Engine");
+            }
+            processBuilder.start();
+        } catch (IOException e) {
+            System.out.println("Error opening terminal window: " + e.getMessage());
         }
     }
 
