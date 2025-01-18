@@ -10,7 +10,7 @@ buildNumber.properties
 .DS_Store
 *.class
 .vscode
-userData.json
+.USER_DATA.json
 
 # https://github.com/takari/maven-wrapper#usage-without-binary-jar
 .mvn/wrapper/maven-wrapper.jar

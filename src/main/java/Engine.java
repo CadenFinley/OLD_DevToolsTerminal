@@ -40,7 +40,7 @@ public class Engine {
     private static final String MAIN_MENU_HEADER = GREEN_COLOR_BOLD + "AI Menu: " + RESET_COLOR;
     private static final String AI_CHAT_HEADER = GREEN_COLOR_BOLD + "AI Chat: " + RESET_COLOR;
 
-    private static final File USER_DATA = new File("userData.json");
+    private static final File USER_DATA = new File(".USER_DATA.json");
 
     private static List<String> startupCommands;
 
