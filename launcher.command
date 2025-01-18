@@ -2,4 +2,4 @@
 
 cd -- "$(dirname -- "$0")"
 
-java -Xmx1024M -jar "DevTools_CadenFinley.jar"
+java -Xmx1024M -jar "DevToolsTerminal.jar"
