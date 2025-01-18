@@ -46,7 +46,7 @@ public class TerminalPassthrough {
         return terminalCache;
     }
 
-    public void clearCache() {
+    public void clearTerminalCache() {
         terminalCache.clear();
     }
 

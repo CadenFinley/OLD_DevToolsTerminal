@@ -187,9 +187,8 @@ public class Engine {
             TextEngine.printWithDelays("Invalid input. Please try again.", false, true);
             return;
         }
-        if (command.equals("clear") || command.equals(".clear")) {
-            System.out.println("Clearing screen...");
-            TextEngine.clearScreen();
+        if (command.equals("clear")) {
+            commandProcesser("clear");
             return;
         }
         if (command.equals("exit")) {
@@ -255,6 +254,11 @@ public class Engine {
         }
         getNextCommand();
         switch (lastCommandParsed) {
+            case "clear" -> {
+                System.out.println("Clearing screen and terminal cache...");
+                TextEngine.clearScreen();
+                terminal.clearTerminalCache();
+            }
             case "ai" -> {
                 aiSettingsCommands();
             }
