@@ -185,6 +185,11 @@ public class Engine {
             TextEngine.printWithDelays("Invalid input. Please try again.", false, true);
             return;
         }
+        if (command.equals("clear") || command.equals(".clear")) {
+            System.out.println("Clearing screen...");
+            TextEngine.clearScreen();
+            return;
+        }
         if (command.equals("exit")) {
             commandProcesser("exit");
             return;
