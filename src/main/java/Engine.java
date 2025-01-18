@@ -48,6 +48,7 @@ public class Engine {
         TextEngine.clearScreen();
         TextEngine.printWithDelays("Loading...", false, true);
         TextEngine.setWidth();
+        startupCommands = new ArrayList<>();
         openAIPromptEngine = new OpenAIPromptEngine();
         clockEngine = new TimeEngine("timer", ENGINE_SERVICE);
         if (!USER_DATA.exists()) {
@@ -656,6 +657,7 @@ public class Engine {
             System.out.println("data: get");
             System.out.println("chat: history, cache, testing, textspeed");
             System.out.println("defaultentry: ai, terminal");
+            System.out.println("textbuffer: enable, disable");
             return;
         }
         TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
