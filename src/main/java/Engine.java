@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 
 import org.json.JSONObject;
@@ -33,6 +35,7 @@ public class Engine {
     private static String lastCommandParsed = null;
     private static boolean defaultTextEntryOnAI = false;
     private static boolean textBuffer = true;
+    private static boolean shotcutsEnabled = true;
 
     private static final String GREEN_COLOR_BOLD = "\033[1;32m";
     private static final String RESET_COLOR = "\033[0m";
@@ -42,12 +45,14 @@ public class Engine {
     private static final File USER_DATA = new File(".USER_DATA.json");
 
     private static List<String> startupCommands;
+    private static Map<String, String> shortcuts;
 
     public static void main(String[] args) {
         TextEngine.clearScreen();
         TextEngine.printWithDelays("Loading...", false, true);
         TextEngine.setWidth();
         startupCommands = new ArrayList<>();
+        shortcuts = new HashMap<>();
         openAIPromptEngine = new OpenAIPromptEngine();
         clockEngine = new TimeEngine("timer", ENGINE_SERVICE);
         if (!USER_DATA.exists()) {
@@ -104,6 +109,10 @@ public class Engine {
             startupCommands = new ArrayList<>();
             userData.getJSONArray("Startup_Commands").forEach(item -> startupCommands.add((String) item));
             TextEngine.setSpeedSetting(userData.getString("Text_Speed"));
+            shotcutsEnabled = userData.getBoolean("Shortcuts_Enabled");
+            shortcuts = new HashMap<>();
+            userData.getJSONObject("Shortcuts").toMap().forEach((key, value) -> shortcuts.put(key, (String) value));
+            textBuffer = userData.getBoolean("Text_Buffer");
         } catch (IOException e) {
             TextEngine.printWithDelays("An error occurred while reading the user data file.", false, true);
         }
@@ -116,6 +125,9 @@ public class Engine {
             userData.put("Chat_Cache", savedChatCache);
             userData.put("Startup_Commands", startupCommands);
             userData.put("Text_Speed", TextEngine.getSpeedSetting());
+            userData.put("Shortcuts_Enabled", shotcutsEnabled);
+            userData.put("Shortcuts", shortcuts);
+            userData.put("Text_Buffer", textBuffer);
             file.write(userData.toString());
             file.flush();
         } catch (IOException e) {
@@ -194,6 +206,29 @@ public class Engine {
             commandProcesser("help");
             return;
         }
+        if (command.startsWith("ss")) {
+            if (!shotcutsEnabled) {
+                System.out.println("Shortcuts are disabled.");
+                return;
+            }
+            if (shortcuts != null && !shortcuts.isEmpty()) {
+                command = command.substring(2);
+                //System.out.println("Shortcut: " + command);
+                if (command.isBlank() || command.isEmpty() || command.equals(" ")) {
+                    System.out.println("No shortcut given.");
+                    return;
+                }
+                String strippedCommand = command.trim();
+                if (shortcuts.containsKey(strippedCommand)) {
+                    shortcutProcesser(strippedCommand);
+                } else {
+                    System.out.println("No command for given shortcut.");
+                }
+            } else {
+                System.out.println("No shortcuts.");
+            }
+            return;
+        }
         if (command.startsWith(".")) {
             commandProcesser(command.substring(1));
             return;
@@ -203,6 +238,12 @@ public class Engine {
         } else {
             sendTerminalCommand(command);
         }
+    }
+
+    private static void shortcutProcesser(String command) {
+        String shortcut = shortcuts.get(command);
+        //System.out.println("Shortcut: " + shortcut);
+        commandProcesser(shortcut);
     }
 
     private static void commandProcesser(String command) {
@@ -623,6 +664,74 @@ public class Engine {
                     return;
                 }
             }
+        }
+        if (lastCommandParsed.equals("shortcut")) {
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+                return;
+            }
+            if (lastCommandParsed.equals("enable")) {
+                shotcutsEnabled = true;
+                TextEngine.printWithDelays("Shortcuts enabled.", false, true);
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    return;
+                }
+            }
+            if (lastCommandParsed.equals("disable")) {
+                shotcutsEnabled = false;
+                TextEngine.printWithDelays("Shortcuts disabled.", false, true);
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    return;
+                }
+            }
+            if (lastCommandParsed.equals("add")) {
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+                    return;
+                }
+                String shortcut = lastCommandParsed;
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+                    return;
+                }
+                String command = lastCommandParsed;
+                shortcuts.put(shortcut, command);
+                TextEngine.printWithDelays("Shortcut added.", false, true);
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    return;
+                }
+            }
+            if (lastCommandParsed.equals("remove")) {
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+                    return;
+                }
+                shortcuts.remove(lastCommandParsed);
+                TextEngine.printWithDelays("Shortcut removed.", false, true);
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    return;
+                }
+            }
+            if (lastCommandParsed.equals("list")) {
+                if (shortcuts != null && !shortcuts.isEmpty()) {
+                    System.out.println("Shortcuts:");
+                    for (Map.Entry<String, String> entry : shortcuts.entrySet()) {
+                        TextEngine.printNoDelay(entry.getKey() + " = " + entry.getValue(), false, true);
+                    }
+                } else {
+                    System.out.println("No shortcuts.");
+                }
+                return;
+            }
+            System.out.println("Unknown command. No given ARGS. Try 'help'");
         }
         if (lastCommandParsed.equals("help")) {
             System.out.println("Commands: ");
