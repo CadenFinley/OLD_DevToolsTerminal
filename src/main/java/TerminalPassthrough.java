@@ -52,30 +52,34 @@ public class TerminalPassthrough {
 
     public String returnCurrentTerminalPosition() {
         String gitInfo = "";
-        Path gitConfigPath = Paths.get(currentDirectory, ".git", "config");
-        boolean gitRepo = Files.exists(gitConfigPath);
+        Path gitHeadPath = Paths.get(currentDirectory, ".git", "HEAD");
+        boolean gitRepo = Files.exists(gitHeadPath);
         if (gitRepo) {
             try {
-                List<String> configLines = Files.readAllLines(gitConfigPath);
+                List<String> headLines = Files.readAllLines(gitHeadPath);
                 String repoName = "";
                 String branchName = "";
                 Pattern repoPattern = Pattern.compile("url = .*/(.*)\\.git");
-                Pattern branchPattern = Pattern.compile("\\[branch \"(.*)\"\\]");
+                Pattern headPattern = Pattern.compile("ref: refs/heads/(.*)");
+                for (String line : headLines) {
+                    Matcher headMatcher = headPattern.matcher(line);
+                    if (headMatcher.find()) {
+                        branchName = headMatcher.group(1);
+                    }
+                }
+                Path gitConfigPath = Paths.get(currentDirectory, ".git", "config");
+                List<String> configLines = Files.readAllLines(gitConfigPath);
                 for (String line : configLines) {
                     Matcher repoMatcher = repoPattern.matcher(line);
-                    Matcher branchMatcher = branchPattern.matcher(line);
                     if (repoMatcher.find()) {
                         repoName = repoMatcher.group(1);
                     }
-                    if (branchMatcher.find()) {
-                        branchName = branchMatcher.group(1);
-                    }
                 }
                 if (!repoName.isEmpty() && !branchName.isEmpty()) {
-                    gitInfo = String.format("%s (%s)", repoName, branchName);
+                    gitInfo = String.format("%s git:(%s)", repoName, branchName);
                 }
             } catch (IOException e) {
-                // Handle exception if needed
+                System.out.println("Error reading git HEAD file: " + e.getMessage());
             }
         }
         if (gitRepo) {
