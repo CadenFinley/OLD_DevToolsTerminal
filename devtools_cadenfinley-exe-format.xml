@@ -13,7 +13,7 @@
   <stayAlive>false</stayAlive>
   <restartOnCrash>false</restartOnCrash>
   <manifest></manifest>
-  <icon>C:\Users\blade\Downloads\aculogo.ico</icon>
+  <icon>C:\Users\blade\OneDrive\Documents\GitHub\DevTools_CadenFinley\DevToolsTerminal.ico</icon>
   <jre>
     <path>%JAVA_HOME%;%PATH%</path>
     <requiresJdk>false</requiresJdk>
