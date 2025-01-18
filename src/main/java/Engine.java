@@ -247,10 +247,11 @@ public class Engine {
                 exit();
             case "help" -> {
                 TextEngine.printWithDelays("Commands:", false, true);
-                TextEngine.printWithDelays(".weather", false, true);
-                TextEngine.printWithDelays(".ai", false, true);
+                TextEngine.printWithDelays(".ai o[ARGS]", false, true);
+                TextEngine.printWithDelays(".terminal o[ARGS]", false, true);
                 TextEngine.printWithDelays(".user", false, true);
                 TextEngine.printWithDelays(".exit", false, true);
+                TextEngine.printWithDelays(".clear or clear", false, true);
                 TextEngine.printWithDelays(".help", false, true);
             }
             default ->
