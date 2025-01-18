@@ -52,14 +52,12 @@ public class TerminalPassthrough {
 
     public String returnCurrentTerminalPosition() {
         String gitInfo = "";
-        Path gitHeadPath = Paths.get(currentDirectory, ".git", "HEAD");
+        Path gitHeadPath = Paths.get(getCurrentFilePath(), ".git", "HEAD");
         boolean gitRepo = Files.exists(gitHeadPath);
         if (gitRepo) {
             try {
                 List<String> headLines = Files.readAllLines(gitHeadPath);
-                String repoName = "";
                 String branchName = "";
-                Pattern repoPattern = Pattern.compile("url = .*/(.*)\\.git");
                 Pattern headPattern = Pattern.compile("ref: refs/heads/(.*)");
                 for (String line : headLines) {
                     Matcher headMatcher = headPattern.matcher(line);
@@ -67,14 +65,7 @@ public class TerminalPassthrough {
                         branchName = headMatcher.group(1);
                     }
                 }
-                Path gitConfigPath = Paths.get(currentDirectory, ".git", "config");
-                List<String> configLines = Files.readAllLines(gitConfigPath);
-                for (String line : configLines) {
-                    Matcher repoMatcher = repoPattern.matcher(line);
-                    if (repoMatcher.find()) {
-                        repoName = repoMatcher.group(1);
-                    }
-                }
+                String repoName = Paths.get(getCurrentFilePath()).getFileName().toString();
                 if (!repoName.isEmpty() && !branchName.isEmpty()) {
                     gitInfo = String.format("%s git:(%s)", repoName, branchName);
                 }
