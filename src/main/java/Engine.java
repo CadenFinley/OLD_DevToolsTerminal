@@ -31,7 +31,6 @@ public class Engine {
 
     private static Queue<String> commandsQueue = null;
     private static String lastCommandParsed = null;
-    private static boolean showChatHistoryOnLaunch = true;
     private static boolean defaultTextEntryOnAI = false;
     private static boolean textBuffer = true;
 
@@ -83,15 +82,6 @@ public class Engine {
         }
         if (TESTING) {
             System.out.println("Testing mode is enabled.");
-        }
-        if (!openAIPromptEngine.getChatCache().isEmpty() && showChatHistoryOnLaunch && defaultTextEntryOnAI) {
-            System.out.println();
-            System.out.println("Chat history:");
-            System.out.println();
-            for (String message : openAIPromptEngine.getChatCache()) {
-                TextEngine.printNoDelay(message, false, true);
-                System.out.println();
-            }
         }
         while (true) {
             if (defaultTextEntryOnAI) {
@@ -291,6 +281,7 @@ public class Engine {
         getNextCommand();
         if (lastCommandParsed == null) {
             defaultTextEntryOnAI = true;
+            showChatHistory();
             return;
         }
         if (lastCommandParsed.equals("apikey")) {
@@ -526,30 +517,6 @@ public class Engine {
                     TextEngine.printWithDelays("Chat history cleared.", false, true);
                     return;
                 }
-                if (lastCommandParsed.equals("showonlaunch")) {
-                    getNextCommand();
-                    if (lastCommandParsed == null) {
-                        TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                        return;
-                    }
-                    if (lastCommandParsed.equals("enable")) {
-                        showChatHistoryOnLaunch = true;
-                        TextEngine.printWithDelays("Chat history will be shown on launch.", false, true);
-                        getNextCommand();
-                        if (lastCommandParsed == null) {
-                            return;
-                        }
-                    }
-                    if (lastCommandParsed.equals("disable")) {
-                        showChatHistoryOnLaunch = false;
-                        TextEngine.printWithDelays("Chat history will not be shown on launch.", false, true);
-                        getNextCommand();
-                        if (lastCommandParsed == null) {
-                            return;
-                        }
-                    }
-                    System.out.println("Unknown command. No given ARGS. Try 'help'");
-                }
                 System.out.println("Unknown command. No given ARGS. Try 'help'");
             }
             if (lastCommandParsed.equals("cache")) {
@@ -679,7 +646,7 @@ public class Engine {
             TextEngine.printWithDelays(AI_CHAT_HEADER + "There is no OpenAPI key set.", false, true);
             return;
         }
-        String response = openAIPromptEngine.buildPromptAndReturnResponce(message, !usingChatCache);
+        String response = openAIPromptEngine.buildPromptAndReturnResponce(message, usingChatCache);
         TextEngine.printWithDelays(GREEN_COLOR_BOLD + "ChatGPT: " + RESET_COLOR + response, false, true);
         System.out.println();
     }
@@ -716,5 +683,17 @@ public class Engine {
         TextEngine.printWithDelays("Exiting...", false, true);
         TextEngine.clearScreen();
         System.exit(0);
+    }
+
+    private static void showChatHistory() {
+        if (!openAIPromptEngine.getChatCache().isEmpty()) {
+            System.out.println();
+            System.out.println("Chat history:");
+            System.out.println();
+            for (String message : openAIPromptEngine.getChatCache()) {
+                TextEngine.printNoDelay(message, false, true);
+                System.out.println();
+            }
+        }
     }
 }
