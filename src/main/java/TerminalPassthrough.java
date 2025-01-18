@@ -37,7 +37,6 @@ public class TerminalPassthrough {
     public Thread executeCommand(String command, boolean feedback) {
         Thread commandThread = new Thread(() -> {
             boolean executionPass = true;
-            boolean outputted = false;
             try {
                 if (command.startsWith("cd ")) {
                     String newDir = command.substring(3).trim();

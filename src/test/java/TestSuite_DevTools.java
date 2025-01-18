@@ -21,8 +21,6 @@ public class TestSuite_DevTools {
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
     private final PrintStream originalOut = System.out;
 
-    private final String imagePathToVaevLogo = "vaevlogo.jpg";
-
     private OpenAIPromptEngine prompt;
 
     private final String API_KEY_FOR_TESTING = "sk-z3q9L-Lh39YYmooGmbPNAFlsaDywlFdRB-O1vFB4mYT3BlbkFJSSn6Um-zBw4r7fUB2H6dX3fhiOisNo8PFzy-fdKXwA";

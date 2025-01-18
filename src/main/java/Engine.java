@@ -37,10 +37,8 @@ public class Engine {
     private static boolean defaultTextEntryOnAI = false;
 
     private static final String GREEN_COLOR_BOLD = "\033[1;32m";
-    private static final String RED_COLOR_BOLD = "\033[1;31m";
     private static final String RESET_COLOR = "\033[0m";
     private static final String MAIN_MENU_HEADER = GREEN_COLOR_BOLD + "Main Menu: " + RESET_COLOR;
-    private static final String TERMINAL_HEADER = RED_COLOR_BOLD + "Terminal: " + RESET_COLOR;
     private static final String AI_CHAT_HEADER = GREEN_COLOR_BOLD + "AI Chat: " + RESET_COLOR;
 
     private static final File USER_DATA = new File("userData.json");
@@ -84,6 +82,12 @@ public class Engine {
                 commandParser("." + command);
             }
         }
+        if (weatherRefresh && locationOn) {
+            ENGINE_SERVICE.weatherListener();
+        }
+        if (TESTING) {
+            System.out.println("Testing mode is enabled.");
+        }
         if (!openAIPromptEngine.getChatCache().isEmpty() && showChatHistoryOnLaunch && defaultTextEntryOnAI) {
             System.out.println();
             System.out.println("Chat history:");
@@ -94,12 +98,6 @@ public class Engine {
             }
         }
         while (true) {
-            if (weatherRefresh && locationOn) {
-                ENGINE_SERVICE.weatherListener();
-            }
-            if (TESTING) {
-                System.out.println("Testing mode is enabled.");
-            }
             if (defaultTextEntryOnAI) {
                 TextEngine.printNoDelay(MAIN_MENU_HEADER, true);
             } else {
@@ -212,14 +210,7 @@ public class Engine {
         if (defaultTextEntryOnAI) {
             chatProcess(command);
         } else {
-            Thread commandThread = terminal.executeCommand(command, true);
-            try {
-                commandThread.join(); // Wait for the thread to finish
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                System.err.println("Thread Interrupted");
-            }
-            System.out.println();
+            sendTerminalCommand(command);
         }
     }
 
@@ -247,11 +238,12 @@ public class Engine {
                 String strippedCommand;
                 try {
                     strippedCommand = command.substring(9);
+                    String reCombinedString = recombineTerminalCommand(strippedCommand);
+                    sendTerminalCommand(reCombinedString);
                 } catch (StringIndexOutOfBoundsException e) {
                     defaultTextEntryOnAI = false;
                     return;
                 }
-                terminal.executeCommand(strippedCommand, true);
             }
             case "exit" ->
                 exit();
@@ -266,6 +258,34 @@ public class Engine {
             default ->
                 TextEngine.printWithDelays("Unknown command. Please try again. Type 'help' or '.help' if you need help", false);
         }
+    }
+
+    private static String recombineTerminalCommand(String command) {
+        String[] parts = command.split(" ");
+        StringBuilder recombined = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            if (parts[i].equals("cd") && i + 1 < parts.length && parts[i + 1].equals("..")) {
+                recombined.append("cd .. ");
+                i++; // Skip the next part as it's already combined
+            } else {
+                recombined.append(parts[i]).append(" ");
+            }
+        }
+        return recombined.toString().trim();
+    }
+
+    private static void sendTerminalCommand(String command) {
+        if (TESTING) {
+            System.out.println("Sending Command: " + command);
+        }
+        Thread commandThread = terminal.executeCommand(command, true);
+        try {
+            commandThread.join(); // Wait for the thread to finish
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.err.println("Thread Interrupted");
+        }
+        System.out.println();
     }
 
     private static void weatherSettingsCommands() {
