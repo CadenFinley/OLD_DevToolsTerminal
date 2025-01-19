@@ -48,22 +48,15 @@ public class Engine {
     private static Map<String, String> shortcuts;
 
     public static void main(String[] args) {
-        openTerminalWindow();
+        TextEngine.setWidth();
         TextEngine.clearScreen();
         TextEngine.printWithDelays("Loading...", false, true);
-        TextEngine.setWidth();
         startupCommands = new ArrayList<>();
         shortcuts = new HashMap<>();
         openAIPromptEngine = new OpenAIPromptEngine();
         clockEngine = new TimeEngine("timer", ENGINE_SERVICE);
         if (!USER_DATA.exists()) {
-            try {
-                System.out.println("User data file not found. Creating new file...");
-                USER_DATA.createNewFile();
-                writeUserData();
-            } catch (IOException e) {
-                TextEngine.printWithDelays(MAIN_MENU_HEADER + "An error occurred while creating the user data file.", false, true);
-            }
+            createNewUSER_DATAFile();
         } else {
             loadUserData();
         }
@@ -89,6 +82,10 @@ public class Engine {
         if (TESTING) {
             System.out.println("Testing mode is enabled.");
         }
+        mainProcessLoop();
+    }
+
+    private static void mainProcessLoop() {
         while (true) {
             if (defaultTextEntryOnAI) {
                 TextEngine.printNoDelay(MAIN_MENU_HEADER, textBuffer, false);
@@ -100,20 +97,14 @@ public class Engine {
         }
     }
 
-    private static void openTerminalWindow() {
+    private static void createNewUSER_DATAFile() {
         try {
-            String os = System.getProperty("os.name").toLowerCase();
-            ProcessBuilder processBuilder;
-            if (os.contains("win")) {
-                processBuilder = new ProcessBuilder("cmd.exe", "/c", "start cmd.exe /k java -cp . Engine");
-            } else if (os.contains("mac")) {
-                processBuilder = new ProcessBuilder("open", "-a", "Terminal", "java -cp . Engine");
-            } else {
-                processBuilder = new ProcessBuilder("x-terminal-emulator", "-e", "java -cp . Engine");
-            }
-            processBuilder.start();
+            System.out.println("User data file not found. Creating new file...");
+            USER_DATA.createNewFile();
+            startupCommands.add("terminal cd /");
+            writeUserData();
         } catch (IOException e) {
-            System.out.println("Error opening terminal window: " + e.getMessage());
+            TextEngine.printWithDelays("An error occurred while creating the user data file.", false, true);
         }
     }
 
@@ -320,7 +311,6 @@ public class Engine {
             Thread.currentThread().interrupt();
             System.err.println("Thread Interrupted");
         }
-        System.out.println();
     }
 
     private static void aiSettingsCommands() {
@@ -578,7 +568,6 @@ public class Engine {
         if (lastCommandParsed.equals("help")) {
             System.out.println("Commands:");
             System.out.println("add [ARGS], remove [ARGS], clear, enable, disable, list, runall");
-            return;
         }
     }
 
@@ -657,7 +646,6 @@ public class Engine {
             System.out.println("Commands:");
             System.out.println("history: disable, enable, save, clear");
             System.out.println("cache: enable, disable, clear");
-            return;
         }
     }
 
@@ -738,7 +726,6 @@ public class Engine {
         if (lastCommandParsed.equals("help")) {
             System.out.println("Commands:");
             System.out.println("clear, enable, disable, add [ARGS], remove [ARGS], list");
-            return;
         }
     }
 
@@ -802,6 +789,29 @@ public class Engine {
             }
             System.out.println("Unknown command. No given ARGS. Try 'help'");
             return;
+        }
+        if (lastCommandParsed.equals("displayfullfilepath")) {
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+                return;
+            }
+            if (lastCommandParsed.equals("enable")) {
+                terminal.setDisplayWholePath(true);
+                TextEngine.printWithDelays("Displaying full file path enabled.", false, true);
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    return;
+                }
+            }
+            if (lastCommandParsed.equals("disable")) {
+                terminal.setDisplayWholePath(false);
+                TextEngine.printWithDelays("Displaying full file path disabled.", false, true);
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    return;
+                }
+            }
         }
         if (lastCommandParsed.equals("help")) {
             System.out.println("Commands:");
