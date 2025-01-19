@@ -160,10 +160,8 @@ public class Engine {
     private static String[] commandSplicer(String command) {
         int numberOfWordsInSeparates = 0;
         String[] commands = command.split(" ");
-        //recombine sets of words in quotes and parentheses
         for (int i = 0; i < commands.length; i++) {
             if (commands[i].startsWith("'") || commands[i].startsWith("(")) {
-                //remove the starting quote or parenthesis
                 commands[i] = commands[i].substring(1);
                 StringBuilder combined = new StringBuilder(commands[i]);
                 while (!commands[i].endsWith("'") && !commands[i].endsWith(")")) {
@@ -174,13 +172,11 @@ public class Engine {
                     }
                     combined.append(" ").append(commands[i]);
                 }
-                //remove the ending quote or parenthesis
                 combined.deleteCharAt(combined.length() - 1);
                 commands[i] = combined.toString();
             }
             commands = Arrays.stream(commands).filter(s -> !s.equals("'") && !s.equals("(") && !s.equals(")")).toArray(String[]::new);
         }
-        //remove the previous n-1 words from the array
         int index = commands.length - 2;
         String bufferCommand = commands[commands.length - 1];
         for (int i = 1; i < numberOfWordsInSeparates; i++) {
@@ -236,7 +232,6 @@ public class Engine {
         }
         if (shortcuts != null && !shortcuts.isEmpty()) {
             command = command.substring(2);
-            //System.out.println("Shortcut: " + command);
             if (command.isBlank() || command.isEmpty() || command.equals(" ")) {
                 System.out.println("No shortcut given.");
                 return;
@@ -306,7 +301,7 @@ public class Engine {
         }
         Thread commandThread = terminal.executeCommand(command, true);
         try {
-            commandThread.join(); // Wait for the thread to finish
+            commandThread.join();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             System.err.println("Thread Interrupted");

@@ -109,8 +109,6 @@ public class TerminalPassthrough {
             } catch (IOException e) {
                 System.out.println("Error reading git HEAD file: " + e.getMessage());
             }
-        }
-        if (gitRepo) {
             return (RED_COLOR_BOLD + getTerminalName() + ": " + RESET_COLOR + gitInfo + ": ");
         }
         if (displayWholePath) {
