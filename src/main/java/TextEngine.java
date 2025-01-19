@@ -27,6 +27,11 @@ public abstract class TextEngine {
 
     private static final String[] BREAK_COMMANDS = {};
 
+    /**
+     * Sets the terminal width based on the current terminal settings.
+     *
+     * @return a string indicating the terminal width
+     */
     public static String setWidth() {
         try {
             String os = System.getProperty("os.name").toLowerCase();
@@ -67,6 +72,13 @@ public abstract class TextEngine {
         }
     }
 
+    /**
+     * Prints text with delays between characters.
+     *
+     * @param data the text to print
+     * @param inputBuffer whether to display an input buffer message
+     * @param newLine whether to print a new line at the end
+     */
     public static void printWithDelays(String data, boolean inputBuffer, boolean newLine) {
         boolean needToBreak = false;
         // Use inputBuffer if you are accepting input after the text is printed
@@ -144,6 +156,13 @@ public abstract class TextEngine {
         }
     }
 
+    /**
+     * Prints text without delays between characters.
+     *
+     * @param data the text to print
+     * @param inputBuffer whether to display an input buffer message
+     * @param newLine whether to print a new line at the end
+     */
     public static void printNoDelay(String data, boolean inputBuffer, boolean newLine) { //use inputBuffer is you are accepting input after the text is printed
         boolean needToBreak = false;
         if (inputBuffer) {
@@ -220,6 +239,9 @@ public abstract class TextEngine {
         }
     }
 
+    /**
+     * Adds a pause and waits for the user to press Enter to continue.
+     */
     public static void enterToNext() { //adds a pause and waits for enter
         if (Engine.TESTING) {
             return;
@@ -228,10 +250,24 @@ public abstract class TextEngine {
         console.readLine();
     }
 
+    /**
+     * Checks for valid input command.
+     *
+     * @param command the input command
+     * @return true if the command is valid, false otherwise
+     */
     public static Boolean checkValidInput(String command) { //checks for valid input command
         return command != null && !command.isEmpty() && !"".equals(command);
     }
 
+    /**
+     * Parses the input command and matches it against a list of possible
+     * commands.
+     *
+     * @param command the input command
+     * @param possibleCommands the list of possible commands
+     * @return the matched command
+     */
     public static String parseCommand(String command, String possibleCommands[]) {
         String matchedCommand = command;
         int maxMatchLength = 0;
@@ -253,6 +289,13 @@ public abstract class TextEngine {
         return (maxMatchLength > 0 && has(possibleCommands, matchedCommand)) ? matchedCommand.toLowerCase() : command.toLowerCase();
     }
 
+    /**
+     * Gets the match length between the input command and a possible command.
+     *
+     * @param command the input command
+     * @param possibleCommand the possible command
+     * @return the match length
+     */
     public static int getMatchLength(String command, String possibleCommand) {
         if (command == null || possibleCommand == null) {
             return 0;
@@ -269,6 +312,13 @@ public abstract class TextEngine {
         return matchLength;
     }
 
+    /**
+     * Checks if the matched command is in the list of possible commands.
+     *
+     * @param possibleCommands the list of possible commands
+     * @param matchedCommand the matched command
+     * @return true if the matched command is in the list, false otherwise
+     */
     public static boolean has(String[] possibleCommands, String matchedCommand) {
         for (String possibleCommand : possibleCommands) {
             if (possibleCommand.equals(matchedCommand)) {
@@ -278,10 +328,20 @@ public abstract class TextEngine {
         return false;
     }
 
+    /**
+     * Sets the speed setting for printing text.
+     *
+     * @param speed the speed setting
+     */
     public static void setSpeedSetting(String speed) {
         speedSetting = speed;
     }
 
+    /**
+     * Gets the speed setting for printing text.
+     *
+     * @return the speed setting
+     */
     public static String getSpeedSetting() {
         return speedSetting;
     }

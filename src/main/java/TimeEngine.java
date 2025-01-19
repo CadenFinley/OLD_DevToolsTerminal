@@ -27,6 +27,7 @@ public class TimeEngine {
      * Constructs a ClockEngine with the specified type.
      *
      * @param type the type of the clock engine
+     * @param trigger the trigger object for synchronization
      */
     public TimeEngine(String type, Object trigger) {
         this.running = false;
@@ -177,16 +178,31 @@ public class TimeEngine {
         this.timeElapsedInSeconds = time;
     }
 
+    /**
+     * Checks if the clock is running.
+     *
+     * @return true if the clock is running, false otherwise
+     */
     public boolean isRunning() {
         return running;
     }
 
+    /**
+     * Adds time to the timer in seconds.
+     *
+     * @param timeInSeconds the time to add in seconds
+     */
     public void addTimeToTimerInSeconds(int timeInSeconds) {
         if (whatAmI.equals("timer")) {
             this.remainingTimeInSeconds += timeInSeconds;
         }
     }
 
+    /**
+     * Returns the current timestamp as a formatted string.
+     *
+     * @return the current timestamp
+     */
     public static String timeStamp() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date resultDate = new Date(System.currentTimeMillis());

@@ -11,6 +11,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * The TerminalPassthrough class provides methods to interact with the terminal.
+ *
+ * @version 1.0
+ */
 public class TerminalPassthrough {
 
     private final String BLUE_COLOR_BOLD = "\033[1;34m";
@@ -21,11 +26,20 @@ public class TerminalPassthrough {
     private final Map<String, String> terminalCache;
     private boolean displayWholePath = false;
 
+    /**
+     * Constructs a TerminalPassthrough with the current directory set to the
+     * user's working directory.
+     */
     public TerminalPassthrough() {
         currentDirectory = System.getProperty("user.dir");
         terminalCache = new HashMap<>();
     }
 
+    /**
+     * Gets the name of the terminal based on the operating system.
+     *
+     * @return the terminal name
+     */
     public String getTerminalName() {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("win")) {
@@ -37,14 +51,27 @@ public class TerminalPassthrough {
         }
     }
 
+    /**
+     * Sets whether to display the whole path in the terminal prompt.
+     *
+     * @param displayWholePath true to display the whole path, false otherwise
+     */
     public void setDisplayWholePath(boolean displayWholePath) {
         this.displayWholePath = displayWholePath;
     }
 
+    /**
+     * Toggles the display of the whole path in the terminal prompt.
+     */
     public void toggleDisplayWholePath() {
         setDisplayWholePath(!displayWholePath);
     }
 
+    /**
+     * Checks whether the whole path is displayed in the terminal prompt.
+     *
+     * @return true if the whole path is displayed, false otherwise
+     */
     public boolean isDisplayWholePath() {
         return displayWholePath;
     }
@@ -58,18 +85,34 @@ public class TerminalPassthrough {
         return (fileNamePath != null && !fileNamePath.toString().equals(" ") && !fileNamePath.toString().strip().equals("")) ? fileNamePath.toString() : "/";
     }
 
+    /**
+     * Prints the current terminal position.
+     */
     public void printCurrentTerminalPosition() {
         System.out.println(returnCurrentTerminalPosition());
     }
 
+    /**
+     * Gets the terminal cache.
+     *
+     * @return the terminal cache
+     */
     public Map<String, String> getTerminalCache() {
         return terminalCache;
     }
 
+    /**
+     * Clears the terminal cache.
+     */
     public void clearTerminalCache() {
         terminalCache.clear();
     }
 
+    /**
+     * Returns the current terminal position as a string.
+     *
+     * @return the current terminal position
+     */
     public String returnCurrentTerminalPosition() {
         String gitInfo = "";
         Path currentPath = Paths.get(getCurrentFilePath());
@@ -117,6 +160,13 @@ public class TerminalPassthrough {
         return (RED_COLOR_BOLD + getTerminalName() + ": " + RESET_COLOR + YELLOW_COLOR_BOLD + getCurrentFileName() + " " + RESET_COLOR);
     }
 
+    /**
+     * Executes a command in the terminal.
+     *
+     * @param command the command to execute
+     * @param feedback whether to provide feedback on the command execution
+     * @return the thread executing the command
+     */
     public Thread executeCommand(String command, boolean feedback) {
         Thread commandThread = new Thread(() -> {
             boolean executionPass = true;

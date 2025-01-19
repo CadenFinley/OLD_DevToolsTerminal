@@ -15,6 +15,8 @@ import java.util.Queue;
 import org.json.JSONObject;
 
 /**
+ * DevToolsTerminal - A terminal emulator for Developers
+ *
  * @author Caden Finley
  */
 public class Engine {
