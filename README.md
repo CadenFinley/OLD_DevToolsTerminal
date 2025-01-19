@@ -21,25 +21,6 @@ DevToolsTerminal is a open-source, command-line tool designed to interact with O
 - Java Development Kit (JDK) installed
 - OpenAI API key
 
-### Installation
-
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/cadenfinley/DevTools_CadenFinley.git
-    ```
-2. Navigate to the project directory:
-    ```sh
-    cd DevTools_CadenFinley
-    ```
-3. Compile the project:
-    ```sh
-    javac src/main/java/Engine.java
-    ```
-4. Run the project:
-    ```sh
-    java -cp src/main/java Engine
-    ```
-
 ## Usage
 
 ### Main Commands
