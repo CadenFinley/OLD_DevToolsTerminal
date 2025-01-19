@@ -45,6 +45,11 @@ public class Engine {
     private static List<String> startupCommands;
     private static Map<String, String> shortcuts;
 
+    /**
+     * Main method to start the application.
+     *
+     * @param args Command line arguments
+     */
     public static void main(String[] args) {
         System.out.println(TextEngine.setWidth());
         TextEngine.clearScreen();
@@ -83,6 +88,9 @@ public class Engine {
         mainProcessLoop();
     }
 
+    /**
+     * Main process loop to handle user input and command parsing.
+     */
     private static void mainProcessLoop() {
         while (true) {
             if (defaultTextEntryOnAI) {
@@ -95,6 +103,9 @@ public class Engine {
         }
     }
 
+    /**
+     * Creates a new user data file if it does not exist.
+     */
     private static void createNewUSER_DATAFile() {
         try {
             System.out.println("User data file not found. Creating new file...");
@@ -106,6 +117,9 @@ public class Engine {
         }
     }
 
+    /**
+     * Loads user data from the user data file.
+     */
     private static void loadUserData() {
         try {
             JSONObject userData = new JSONObject(Files.readString(USER_DATA.toPath()));
@@ -125,6 +139,9 @@ public class Engine {
         }
     }
 
+    /**
+     * Writes user data to the user data file.
+     */
     private static void writeUserData() {
         try (FileWriter file = new FileWriter(USER_DATA)) {
             JSONObject userData = new JSONObject();
@@ -142,6 +159,11 @@ public class Engine {
         }
     }
 
+    /**
+     * Reads and returns the content of the user data file.
+     *
+     * @return The content of the user data file as a String
+     */
     private static String readAndReturnUserDataFile() {
         try {
             String userData = Files.readString(USER_DATA.toPath());
@@ -155,6 +177,12 @@ public class Engine {
         }
     }
 
+    /**
+     * Splits a command string into an array of commands.
+     *
+     * @param command The command string to split
+     * @return An array of commands
+     */
     private static String[] commandSplicer(String command) {
         int numberOfWordsInSeparates = 0;
         String[] commands = command.split(" ");
@@ -187,6 +215,11 @@ public class Engine {
         return commands;
     }
 
+    /**
+     * Parses and processes a command string.
+     *
+     * @param command The command string to parse
+     */
     private static void commandParser(String command) {
         if (command == null || command.isEmpty()) {
             TextEngine.printWithDelays("Invalid input. Please try again.", false, true);
@@ -195,6 +228,10 @@ public class Engine {
         if (command.equals("restart")) {
             System.out.println("Restarting...");
             //add funtionality what all does this need to do
+            //clear terminal chat cache
+            //clear screen
+            //rerun startup sequence
+            return;
         }
         if (command.equals("clear")) {
             commandProcesser("clear");
@@ -229,6 +266,11 @@ public class Engine {
         }
     }
 
+    /**
+     * Processes a shortcut command.
+     *
+     * @param command The shortcut command to process
+     */
     private static void shortcutProcesser(String command) {
         if (!shotcutsEnabled) {
             System.out.println("Shortcuts are disabled.");
@@ -251,6 +293,11 @@ public class Engine {
         }
     }
 
+    /**
+     * Processes a command string.
+     *
+     * @param command The command string to process
+     */
     private static void commandProcesser(String command) {
         commandsQueue = new LinkedList<>();
         commandsQueue.addAll(Arrays.asList(commandSplicer(command)));
@@ -299,6 +346,11 @@ public class Engine {
         }
     }
 
+    /**
+     * Sends a command to the terminal.
+     *
+     * @param command The command to send
+     */
     private static void sendTerminalCommand(String command) {
         if (TESTING) {
             System.out.println("Sending Command: " + command);
@@ -312,6 +364,9 @@ public class Engine {
         }
     }
 
+    /**
+     * Processes AI settings commands.
+     */
     private static void aiSettingsCommands() {
         getNextCommand();
         if (lastCommandParsed == null) {
@@ -403,6 +458,9 @@ public class Engine {
         TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
     }
 
+    /**
+     * Processes user settings commands.
+     */
     private static void userSettingsCommands() {
         getNextCommand();
         if (lastCommandParsed == null) {
@@ -487,6 +545,9 @@ public class Engine {
         TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
     }
 
+    /**
+     * Processes startup commands.
+     */
     private static void startupCommands() {
         getNextCommand();
         if (lastCommandParsed == null) {
@@ -601,6 +662,9 @@ public class Engine {
         }
     }
 
+    /**
+     * Processes AI chat commands.
+     */
     private static void aiChatCommands() {
         getNextCommand();
         if (lastCommandParsed == null) {
@@ -679,6 +743,9 @@ public class Engine {
         }
     }
 
+    /**
+     * Processes shortcut commands.
+     */
     private static void shortcutCommands() {
         getNextCommand();
         if (lastCommandParsed == null) {
@@ -759,6 +826,9 @@ public class Engine {
         }
     }
 
+    /**
+     * Processes text commands.
+     */
     private static void textCommands() {
         getNextCommand();
         if (lastCommandParsed == null) {
@@ -849,6 +919,11 @@ public class Engine {
         }
     }
 
+    /**
+     * Processes a chat message.
+     *
+     * @param message The chat message to process
+     */
     private static void chatProcess(String message) {
         System.out.println();
         if (message == null || message.isEmpty()) {
@@ -864,6 +939,9 @@ public class Engine {
         System.out.println();
     }
 
+    /**
+     * Retrieves the next command from the command queue.
+     */
     private static void getNextCommand() {
         if (!commandsQueue.isEmpty()) {
             lastCommandParsed = commandsQueue.poll();
@@ -875,6 +953,9 @@ public class Engine {
         }
     }
 
+    /**
+     * Exits the application, optionally saving chat history.
+     */
     private static void exit() {
         if (!incognitoChatMode) {
             if (!openAIPromptEngine.getChatCache().isEmpty()) {
@@ -898,6 +979,9 @@ public class Engine {
         System.exit(0);
     }
 
+    /**
+     * Displays the chat history.
+     */
     private static void showChatHistory() {
         if (!openAIPromptEngine.getChatCache().isEmpty()) {
             System.out.println();
