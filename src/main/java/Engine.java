@@ -15,6 +15,8 @@ import java.util.Queue;
 import org.json.JSONObject;
 
 /**
+ * DevToolsTerminal - A terminal emulator for Developers
+ *
  * @author Caden Finley
  */
 public class Engine {
@@ -37,6 +39,7 @@ public class Engine {
 
     private static final String GREEN_COLOR_BOLD = "\033[1;32m";
     private static final String RESET_COLOR = "\033[0m";
+    private static final String RED_COLOR_BOLD = "\033[1;31m";
     private static final String MAIN_MENU_HEADER = GREEN_COLOR_BOLD + "AI Menu: " + RESET_COLOR;
     private static final String AI_CHAT_HEADER = GREEN_COLOR_BOLD + "AI Chat: " + RESET_COLOR;
 
@@ -82,9 +85,6 @@ public class Engine {
                 commandParser("." + command);
             }
         }
-        if (TESTING) {
-            System.out.println("Testing mode is enabled.");
-        }
         mainProcessLoop();
     }
 
@@ -93,6 +93,9 @@ public class Engine {
      */
     private static void mainProcessLoop() {
         while (true) {
+            if (TESTING) {
+                System.out.println(RED_COLOR_BOLD + "DEV MODE" + RESET_COLOR);
+            }
             if (defaultTextEntryOnAI) {
                 TextEngine.printNoDelay(MAIN_MENU_HEADER, textBuffer, false);
             } else {
@@ -122,6 +125,7 @@ public class Engine {
      */
     private static void loadUserData() {
         try {
+            System.out.println("Loading user data from: " + USER_DATA.getAbsolutePath());
             JSONObject userData = new JSONObject(Files.readString(USER_DATA.toPath()));
             openAIPromptEngine.setAPIKey(userData.getString("OpenAI_API_KEY"));
             savedChatCache = new ArrayList<>();
@@ -223,14 +227,6 @@ public class Engine {
     private static void commandParser(String command) {
         if (command == null || command.isEmpty()) {
             TextEngine.printWithDelays("Invalid input. Please try again.", false, true);
-            return;
-        }
-        if (command.equals("restart")) {
-            System.out.println("Restarting...");
-            //add funtionality what all does this need to do
-            //clear terminal chat cache
-            //clear screen
-            //rerun startup sequence
             return;
         }
         if (command.equals("clear")) {
@@ -340,6 +336,7 @@ public class Engine {
                 TextEngine.printWithDelays(".exit", false, true);
                 TextEngine.printWithDelays(".clear or clear", false, true);
                 TextEngine.printWithDelays(".help", false, true);
+                TextEngine.printWithDelays("aihelp", false, true);
             }
             default ->
                 TextEngine.printWithDelays("Unknown command. Please try again. Type 'help' or '.help' if you need help", false, true);
@@ -392,6 +389,15 @@ public class Engine {
             } catch (IOException e) {
                 TextEngine.printWithDelays("An error occurred while writing to the chat file.", false, true);
             }
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                return;
+            }
+            if (lastCommandParsed.equals("extract")) {
+                extractCodeSnippet(fileName);
+                return;
+            }
+            System.out.println("Unknown command. No given ARGS. Try 'help'");
             return;
         }
         if (lastCommandParsed.equals("apikey")) {
@@ -450,6 +456,7 @@ public class Engine {
         }
         if (lastCommandParsed.equals("help")) {
             System.out.println("Commands: ");
+            System.out.println("log: extract");
             System.out.println("apikey: set [ARGS], get");
             System.out.println("chat: [ARGS]");
             System.out.println("get: [ARGS]");
@@ -993,5 +1000,75 @@ public class Engine {
                 System.out.println();
             }
         }
+    }
+
+    /**
+     * Extracts the code snippet from a logged chat file and saves it to a new
+     * file with the correct file extension.
+     *
+     * @param logFile The log file containing the chat
+     */
+    private static File extractCodeSnippet(File logFile) {
+        try {
+            List<String> lines = Files.readAllLines(logFile.toPath());
+            StringBuilder codeSnippet = new StringBuilder();
+            String fileExtension = null;
+            boolean inCodeBlock = false;
+            for (String line : lines) {
+                if (line.startsWith("```")) {
+                    if (inCodeBlock) {
+                        break;
+                    } else {
+                        inCodeBlock = true;
+                        String language = line.substring(3).trim();
+                        fileExtension = getFileExtensionForLanguage(language);
+                    }
+                } else if (inCodeBlock) {
+                    codeSnippet.append(line).append(System.lineSeparator());
+                }
+            }
+            if (fileExtension != null && !codeSnippet.toString().isEmpty()) {
+                File outputFile = new File("extracted_code." + fileExtension);
+                try (FileWriter writer = new FileWriter(outputFile)) {
+                    writer.write(codeSnippet.toString());
+                    System.out.println("Code snippet extracted and saved to " + outputFile.getAbsolutePath());
+                    return outputFile;
+                }
+            } else {
+                System.out.println("No code snippet found in the log file.");
+            }
+        } catch (IOException e) {
+            System.err.println("An error occurred while extracting the code snippet: " + e.getMessage());
+        }
+        return null;
+    }
+
+    private static String getFileExtensionForLanguage(String language) {
+        return switch (language.toLowerCase()) {
+            case "java" ->
+                "java";
+            case "python" ->
+                "py";
+            case "javascript" ->
+                "js";
+            case "typescript" ->
+                "ts";
+            case "csharp" ->
+                "cs";
+            case "cpp" ->
+                "cpp";
+            case "c" ->
+                "c";
+            case "html" ->
+                "html";
+            case "css" ->
+                "css";
+            case "json" ->
+                "json";
+            case "xml" ->
+                "xml";
+            default ->
+                "txt";
+        };
     }
 }

@@ -34,15 +34,30 @@ public class OpenAIPromptEngine {
     private final List<String> chatCache;
     private Map<String, Object> responseDataMap;
 
+    /**
+     * Constructs an OpenAIPromptEngine with the specified API key.
+     *
+     * @param apiKey the OpenAI API key
+     */
     public OpenAIPromptEngine(String apiKey) {
         this.USER_API_KEY = apiKey;
         chatCache = new ArrayList<>();
     }
 
+    /**
+     * Constructs an OpenAIPromptEngine without an API key.
+     */
     public OpenAIPromptEngine() {
         chatCache = new ArrayList<>();
     }
 
+    /**
+     * Builds a prompt and returns the response from the OpenAI API.
+     *
+     * @param message the user's message
+     * @param usingChatCache whether to use the chat cache
+     * @return the response from the OpenAI API
+     */
     public String buildPromptAndReturnResponce(String message, boolean usingChatCache) {
         if (USER_API_KEY == null) {
             return "API key not set.";
@@ -60,6 +75,12 @@ public class OpenAIPromptEngine {
         return response;
     }
 
+    /**
+     * Builds a prompt and does not return the response from the OpenAI API.
+     *
+     * @param message the user's message
+     * @param usingChatCache whether to use the chat cache
+     */
     public void buildPromptAndReturnNoResponce(String message, boolean usingChatCache) {
         if (USER_API_KEY == null) {
             System.out.println("OpenAI: " + System.currentTimeMillis() + "API key not set.");
@@ -74,6 +95,13 @@ public class OpenAIPromptEngine {
         }
     }
 
+    /**
+     * Sends a message to the OpenAI API and returns the response.
+     *
+     * @param message the user's message
+     * @param usingChatCache whether to use the chat cache
+     * @return the response from the OpenAI API
+     */
     private String chatGPT(String message, boolean usingChatCache) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<String> future = executor.submit(() -> {
@@ -132,6 +160,12 @@ public class OpenAIPromptEngine {
         }
     }
 
+    /**
+     * Parses the JSON response from the OpenAI API.
+     *
+     * @param jsonResponse the JSON response
+     * @return a map containing the parsed response data
+     */
     private Map<String, Object> parseJSONResponse(String jsonResponse) {
         Map<String, Object> responseData = new HashMap<>();
         try {
@@ -145,6 +179,12 @@ public class OpenAIPromptEngine {
         return responseData;
     }
 
+    /**
+     * Extracts the content from the JSON response.
+     *
+     * @param jsonResponse the JSON response
+     * @return the extracted content
+     */
     private String extractContentFromJSON(String jsonResponse) {
         try {
             JSONObject jsonObject = new JSONObject(jsonResponse);
@@ -158,6 +198,12 @@ public class OpenAIPromptEngine {
         }
     }
 
+    /**
+     * Tests the validity of the provided API key.
+     *
+     * @param apiKey the OpenAI API key
+     * @return true if the API key is valid, false otherwise
+     */
     public boolean testAPIKey(String apiKey) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executor.submit(() -> {
@@ -189,35 +235,74 @@ public class OpenAIPromptEngine {
         }
     }
 
+    /**
+     * Sets the OpenAI API key.
+     *
+     * @param apiKey the OpenAI API key
+     */
     public void setAPIKey(String apiKey) {
         this.USER_API_KEY = apiKey;
     }
 
+    /**
+     * Gets the OpenAI API key.
+     *
+     * @return the OpenAI API key
+     */
     public String getAPIKey() {
         return USER_API_KEY;
     }
 
+    /**
+     * Gets the last prompt used.
+     *
+     * @return the last prompt used
+     */
     public String getLastPromptUsed() {
         return lastPromptUsed;
     }
 
+    /**
+     * Gets the last response received.
+     *
+     * @return the last response received
+     */
     public String getLastResponseReceived() {
         return lastResponseReceived;
     }
 
+    /**
+     * Gets the chat cache.
+     *
+     * @return the chat cache
+     */
     public List<String> getChatCache() {
         return chatCache;
     }
 
+    /**
+     * Clears the chat cache.
+     */
     public void clearChatCache() {
         chatCache.clear();
     }
 
+    /**
+     * Sets the chat cache.
+     *
+     * @param chatCache the chat cache
+     */
     public void setChatCache(List<String> chatCache) {
         this.chatCache.clear();
         this.chatCache.addAll(chatCache);
     }
 
+    /**
+     * Gets the response data for the specified key.
+     *
+     * @param key the key for the response data
+     * @return the response data for the specified key
+     */
     public String getResponseData(String key) {
         if ("all".equals(key)) {
             if (responseDataMap == null || responseDataMap.isEmpty()) {
