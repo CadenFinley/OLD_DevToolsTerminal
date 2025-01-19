@@ -2,7 +2,7 @@
 
 ## Overview
 
-DevToolsTerminal is a open-source, command-line tool designed to interact with OpenAI's API, manage terminal commands, and handle user settings. It provides a robust interface for executing commands, managing chat history, and configuring various settings. It also provides built-in functionality for startup commands and command shortcuts.
+DevToolsTerminal is a open-source, command-line tool designed to interact with OpenAI's API, manage terminal commands, and handle user settings. It provides a robust interface for executing commands, managing chat history, and configuring various settings. It also provides built-in functionality for startup commands, command shortcuts, and script execution.
 
 ## Features
 
