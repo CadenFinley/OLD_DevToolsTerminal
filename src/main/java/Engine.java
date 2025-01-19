@@ -227,14 +227,6 @@ public class Engine {
             TextEngine.printWithDelays("Invalid input. Please try again.", false, true);
             return;
         }
-        if (command.equals("restart")) {
-            System.out.println("Restarting...");
-            //add funtionality what all does this need to do
-            //clear terminal chat cache
-            //clear screen
-            //rerun startup sequence
-            return;
-        }
         if (command.equals("clear")) {
             commandProcesser("clear");
             return;
@@ -342,6 +334,7 @@ public class Engine {
                 TextEngine.printWithDelays(".exit", false, true);
                 TextEngine.printWithDelays(".clear or clear", false, true);
                 TextEngine.printWithDelays(".help", false, true);
+                TextEngine.printWithDelays("aihelp", false, true);
             }
             default ->
                 TextEngine.printWithDelays("Unknown command. Please try again. Type 'help' or '.help' if you need help", false, true);
@@ -460,6 +453,7 @@ public class Engine {
         }
         if (lastCommandParsed.equals("help")) {
             System.out.println("Commands: ");
+            System.out.println("log: extract");
             System.out.println("apikey: set [ARGS], get");
             System.out.println("chat: [ARGS]");
             System.out.println("get: [ARGS]");
@@ -1010,7 +1004,6 @@ public class Engine {
      * file with the correct file extension.
      *
      * @param logFile The log file containing the chat
-     * @param outputDir The directory to save the extracted code file
      */
     private static File extractCodeSnippet(File logFile) {
         try {
