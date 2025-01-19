@@ -39,6 +39,7 @@ public class Engine {
     private static final String RED_COLOR_BOLD = "\033[1;31m";
     private static final String MAIN_MENU_HEADER = GREEN_COLOR_BOLD + "AI Menu: " + RESET_COLOR;
     private static final String AI_CHAT_HEADER = GREEN_COLOR_BOLD + "AI Chat: " + RESET_COLOR;
+    private static String applicationDirectory;
 
     private static List<String> savedChatCache = new ArrayList<>();
     private static Queue<String> commandsQueue = null;
@@ -56,6 +57,7 @@ public class Engine {
         TextEngine.clearScreen();
         TextEngine.printNoDelay("DevToolsTerminal - Caden Finley (c) 2025", false, true);
         TextEngine.printWithDelays("Loading...", false, true);
+        applicationDirectory = System.getProperty("user.dir");
         startupCommands = new ArrayList<>();
         shortcuts = new HashMap<>();
         terminal = new TerminalPassthrough();
@@ -162,6 +164,11 @@ public class Engine {
         }
     }
 
+    private static void goToApplicationDirectory() {
+        commandProcesser("terminal cd /");
+        commandProcesser("terminal cd " + applicationDirectory);
+    }
+
     /**
      * Reads and returns the content of the user data file.
      *
@@ -228,27 +235,8 @@ public class Engine {
             TextEngine.printWithDelays("Invalid input. Please try again.", false, true);
             return;
         }
-        if (command.equals("clear")) {
-            commandProcesser("clear");
-            return;
-        }
         if (command.equals("exit")) {
-            commandProcesser("exit");
-            return;
-        }
-        if (command.equals("aihelp")) {
-            if (!defaultTextEntryOnAI && openAIPromptEngine.getAPIKey() != null && !openAIPromptEngine.getAPIKey().isEmpty()) {
-                String message = ("I am encountering these errors in the " + terminal.getTerminalName() + " and would like some help solving these issues: " + terminal.getTerminalCache());
-                TextEngine.printWithDelays(openAIPromptEngine.buildPromptAndReturnResponce(message, false), false, true);
-                System.out.println();
-                return;
-            }
-            commandProcesser("help");
-            return;
-        }
-        if (command.startsWith("ss")) {
-            shortcutProcesser(command);
-            return;
+            exit();
         }
         if (command.startsWith(".")) {
             commandProcesser(command.substring(1));
@@ -304,6 +292,12 @@ public class Engine {
         }
         getNextCommand();
         switch (lastCommandParsed) {
+            case "ss" -> {
+                shortcutProcesser(command);
+            }
+            case "approot" -> {
+                goToApplicationDirectory();
+            }
             case "clear" -> {
                 System.out.println("Clearing screen and terminal cache...");
                 TextEngine.clearScreen();
@@ -314,6 +308,19 @@ public class Engine {
             }
             case "user" -> {
                 userSettingsCommands();
+            }
+            case "aihelp" -> {
+                if (!defaultTextEntryOnAI && openAIPromptEngine.getAPIKey() != null && !openAIPromptEngine.getAPIKey().isEmpty()) {
+                    String message = ("I am encountering these errors in the " + terminal.getTerminalName() + " and would like some help solving these issues: " + terminal.getTerminalCache());
+                    if (TESTING) {
+                        System.out.println(message);
+                    }
+                    TextEngine.printWithDelays(openAIPromptEngine.buildPromptAndReturnResponce(message, false), false, true);
+                    System.out.println();
+                    return;
+                }
+                commandProcesser("help");
+                return;
             }
             case "terminal" -> {
                 String strippedCommand;
