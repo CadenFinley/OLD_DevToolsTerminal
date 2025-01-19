@@ -162,9 +162,11 @@ public class Engine {
         String[] commands = command.split(" ");
         for (int i = 0; i < commands.length; i++) {
             if (commands[i].startsWith("'") || commands[i].startsWith("(")) {
+                char startChar = commands[i].charAt(0);
+                char endChar = startChar == '(' ? ')' : startChar == '[' ? ']' : '\'';
                 commands[i] = commands[i].substring(1);
                 StringBuilder combined = new StringBuilder(commands[i]);
-                while (!commands[i].endsWith("'") && !commands[i].endsWith(")")) {
+                while (!commands[i].endsWith(String.valueOf(endChar))) {
                     i++;
                     numberOfWordsInSeparates++;
                     if (i >= commands.length) {
