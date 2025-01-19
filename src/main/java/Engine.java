@@ -56,6 +56,7 @@ public class Engine {
     public static void main(String[] args) {
         System.out.println(TextEngine.setWidth());
         TextEngine.clearScreen();
+        TextEngine.printNoDelay("DevToolsTerminal - Caden Finley 2025 (c)", false, true);
         TextEngine.printWithDelays("Loading...", false, true);
         startupCommands = new ArrayList<>();
         shortcuts = new HashMap<>();
