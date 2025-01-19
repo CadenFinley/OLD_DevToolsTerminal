@@ -339,13 +339,15 @@ public class Engine {
                 exit();
             case "help" -> {
                 TextEngine.printWithDelays("Commands:", false, true);
+                TextEngine.printWithDelays(".ss [ARGS]", true, TESTING);
+                TextEngine.printWithDelays(".approot", false, true);
                 TextEngine.printWithDelays(".ai o[ARGS]", false, true);
                 TextEngine.printWithDelays(".terminal o[ARGS]", false, true);
                 TextEngine.printWithDelays(".user", false, true);
                 TextEngine.printWithDelays(".exit", false, true);
                 TextEngine.printWithDelays(".clear or clear", false, true);
                 TextEngine.printWithDelays(".help", false, true);
-                TextEngine.printWithDelays("aihelp", false, true);
+                TextEngine.printWithDelays(".aihelp", false, true);
             }
             default ->
                 TextEngine.printWithDelays("Unknown command. Please try again. Type 'help' or '.help' if you need help", false, true);
