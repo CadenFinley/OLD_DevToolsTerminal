@@ -55,7 +55,7 @@ public class TerminalPassthrough {
 
     private String getCurrentFileName() {
         Path fileNamePath = Paths.get(getCurrentFilePath()).getFileName();
-        return (fileNamePath != null) ? fileNamePath.toString() : "~";
+        return (fileNamePath != null && !fileNamePath.toString().equals(" ") && !fileNamePath.toString().strip().equals("")) ? fileNamePath.toString() : "/";
     }
 
     public void printCurrentTerminalPosition() {
@@ -114,9 +114,9 @@ public class TerminalPassthrough {
             return (RED_COLOR_BOLD + getTerminalName() + ": " + RESET_COLOR + gitInfo + ": ");
         }
         if (displayWholePath) {
-            return (RED_COLOR_BOLD + getTerminalName() + ": " + RESET_COLOR + YELLOW_COLOR_BOLD + getCurrentFilePath() + ": " + RESET_COLOR);
+            return (RED_COLOR_BOLD + getTerminalName() + ": " + RESET_COLOR + YELLOW_COLOR_BOLD + getCurrentFilePath() + " " + RESET_COLOR);
         }
-        return (RED_COLOR_BOLD + getTerminalName() + ": " + RESET_COLOR + YELLOW_COLOR_BOLD + getCurrentFileName() + ": " + RESET_COLOR);
+        return (RED_COLOR_BOLD + getTerminalName() + ": " + RESET_COLOR + YELLOW_COLOR_BOLD + getCurrentFileName() + " " + RESET_COLOR);
     }
 
     public Thread executeCommand(String command, boolean feedback) {
