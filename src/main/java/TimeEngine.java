@@ -187,7 +187,7 @@ public class TimeEngine {
         }
     }
 
-    public String timeStamp() {
+    public static String timeStamp() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date resultDate = new Date(System.currentTimeMillis());
         return sdf.format(resultDate);

@@ -27,9 +27,7 @@ public class Engine {
     private static List<String> savedChatCache = new ArrayList<>();
 
     private static OpenAIPromptEngine openAIPromptEngine;
-    private static TimeEngine clockEngine;
-    private static final TerminalPassthrough terminal = new TerminalPassthrough();
-    private static final Engine ENGINE_SERVICE = new Engine();
+    private static TerminalPassthrough terminal;
 
     private static Queue<String> commandsQueue = null;
     private static String lastCommandParsed = null;
@@ -53,8 +51,8 @@ public class Engine {
         TextEngine.printWithDelays("Loading...", false, true);
         startupCommands = new ArrayList<>();
         shortcuts = new HashMap<>();
+        terminal = new TerminalPassthrough();
         openAIPromptEngine = new OpenAIPromptEngine();
-        clockEngine = new TimeEngine("timer", ENGINE_SERVICE);
         if (!USER_DATA.exists()) {
             createNewUSER_DATAFile();
         } else {
@@ -194,6 +192,10 @@ public class Engine {
             TextEngine.printWithDelays("Invalid input. Please try again.", false, true);
             return;
         }
+        if (command.equals("restart")) {
+            System.out.println("Restarting...");
+            //add funtionality what all does this need to do
+        }
         if (command.equals("clear")) {
             commandProcesser("clear");
             return;
@@ -202,7 +204,7 @@ public class Engine {
             commandProcesser("exit");
             return;
         }
-        if (command.equals("help")) {
+        if (command.equals("aihelp")) {
             if (!defaultTextEntryOnAI && openAIPromptEngine.getAPIKey() != null && !openAIPromptEngine.getAPIKey().isEmpty()) {
                 String message = ("I am encountering these errors in the " + terminal.getTerminalName() + " and would like some help solving these issues: " + terminal.getTerminalCache());
                 TextEngine.printWithDelays(openAIPromptEngine.buildPromptAndReturnResponce(message, false), false, true);
@@ -320,7 +322,7 @@ public class Engine {
         if (lastCommandParsed.equals("log")) {
             String lastChatSent = openAIPromptEngine.getLastPromptUsed();
             String lastChatRecieved = openAIPromptEngine.getLastResponseReceived();
-            File fileName = new File("OpenAPI_Chat_" + clockEngine.timeStamp() + ".txt");
+            File fileName = new File("OpenAPI_Chat_" + TimeEngine.timeStamp() + ".txt");
             try {
                 fileName.createNewFile();
             } catch (IOException e) {
@@ -372,7 +374,7 @@ public class Engine {
                 TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                 return;
             }
-            TextEngine.printWithDelays(clockEngine.timeStamp() + " Sent message to GPT: " + lastCommandParsed, false, true);
+            TextEngine.printWithDelays(TimeEngine.timeStamp() + " Sent message to GPT: " + lastCommandParsed, false, true);
             chatProcess(lastCommandParsed);
             return;
         }
