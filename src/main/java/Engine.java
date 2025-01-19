@@ -48,7 +48,7 @@ public class Engine {
     private static Map<String, String> shortcuts;
 
     public static void main(String[] args) {
-        TextEngine.setWidth();
+        System.out.println(TextEngine.setWidth());
         TextEngine.clearScreen();
         TextEngine.printWithDelays("Loading...", false, true);
         startupCommands = new ArrayList<>();
@@ -318,6 +318,25 @@ public class Engine {
         if (lastCommandParsed == null) {
             defaultTextEntryOnAI = true;
             showChatHistory();
+            return;
+        }
+        if (lastCommandParsed.equals("log")) {
+            String lastChatSent = openAIPromptEngine.getLastPromptUsed();
+            String lastChatRecieved = openAIPromptEngine.getLastResponseReceived();
+            File fileName = new File("OpenAPI_Chat_" + clockEngine.timeStamp() + ".txt");
+            try {
+                fileName.createNewFile();
+            } catch (IOException e) {
+                TextEngine.printWithDelays("An error occurred while creating the chat file.", false, true);
+            }
+            try (FileWriter file = new FileWriter(fileName)) {
+                file.write("Chat Sent: " + lastChatSent + "\n");
+                file.write("Chat Recieved: " + lastChatRecieved + "\n");
+                file.flush();
+                TextEngine.printWithDelays("Chat log saved to " + fileName.getName(), false, true);
+            } catch (IOException e) {
+                TextEngine.printWithDelays("An error occurred while writing to the chat file.", false, true);
+            }
             return;
         }
         if (lastCommandParsed.equals("apikey")) {
