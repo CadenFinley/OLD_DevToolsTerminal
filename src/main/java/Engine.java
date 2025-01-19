@@ -58,6 +58,9 @@ public class Engine {
         TextEngine.printNoDelay("DevToolsTerminal - Caden Finley (c) 2025", false, true);
         TextEngine.printWithDelays("Loading...", false, true);
         applicationDirectory = System.getProperty("user.dir");
+        if (System.getProperty("os.name").toLowerCase().contains("win")) {
+            applicationDirectory = applicationDirectory.substring(applicationDirectory.indexOf(":") + 1);
+        }
         startupCommands = new ArrayList<>();
         shortcuts = new HashMap<>();
         terminal = new TerminalPassthrough();
