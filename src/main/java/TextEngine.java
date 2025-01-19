@@ -23,7 +23,7 @@ public abstract class TextEngine {
     public static String resetColor = "\033[0m";
     public static String greenColor = "\033[0;32m";
 
-    public static int MAX_LINE_WIDTH = 30; // Define the maximum line width
+    public static int MAX_LINE_WIDTH = 50; // Define the maximum line width
 
     private static final String[] BREAK_COMMANDS = {};
 
@@ -58,17 +58,17 @@ public abstract class TextEngine {
                 line = reader.readLine();
             }
             if (line != null && !line.isEmpty()) {
-                MAX_LINE_WIDTH = Integer.parseInt(line);
+                MAX_LINE_WIDTH = Integer.parseInt(line) + 20;
                 return ("Terminal width: " + line);
             } else {
                 System.out.println("Could not get the terminal width, using default value");
                 MAX_LINE_WIDTH = 30; // Default width if tput/mode con fails
-                return ("Terminal width: " + "30");
+                return ("Terminal width: " + "50");
             }
         } catch (IOException e) {
             System.out.println("Could not get the terminal width, using default value");
             MAX_LINE_WIDTH = 30; // Default width if an exception occurs
-            return ("Terminal width: " + "30");
+            return ("Terminal width: " + "50");
         }
     }
 
@@ -82,7 +82,7 @@ public abstract class TextEngine {
     public static void printWithDelays(String data, boolean inputBuffer, boolean newLine) {
         boolean needToBreak = false;
         // Use inputBuffer if you are accepting input after the text is printed
-        if (speedSetting.equals("nodelay") || Engine.TESTING) {
+        if (speedSetting.equals("nodelay")) {
             printNoDelay(data, inputBuffer, newLine);
             return;
         }
@@ -243,9 +243,6 @@ public abstract class TextEngine {
      * Adds a pause and waits for the user to press Enter to continue.
      */
     public static void enterToNext() { //adds a pause and waits for enter
-        if (Engine.TESTING) {
-            return;
-        }
         printNoDelay(yellowColor + "Press Enter to continue" + resetColor, false, false);
         console.readLine();
     }
