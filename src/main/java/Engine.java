@@ -395,6 +395,7 @@ public class Engine {
             System.out.println("apikey: set [ARGS], get");
             System.out.println("chat: [ARGS]");
             System.out.println("get: [ARGS]");
+            System.out.println("dump");
             return;
         }
         TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
@@ -457,6 +458,17 @@ public class Engine {
                 System.out.println(readAndReturnUserDataFile());
                 return;
             }
+            if (lastCommandParsed.equals("clear")) {
+                try {
+                    Files.delete(USER_DATA.toPath());
+                    createNewUSER_DATAFile();
+                    TextEngine.printWithDelays("User data file cleared.", false, true);
+                    return;
+                } catch (IOException e) {
+                    TextEngine.printWithDelays("An error occurred while clearing the user data file.", false, true);
+                    return;
+                }
+            }
             TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
             return;
         }
@@ -467,7 +479,7 @@ public class Engine {
             System.out.println("text: textspeed [ARGS], textbuffer enable, textbuffer disable, defaultentry ai, defaultentry terminal");
             System.out.println("shortcut: clear, enable, disable, add [ARGS], remove [ARGS], list");
             System.out.println("testing: enable, disable");
-            System.out.println("data: get");
+            System.out.println("data: get, clear");
             return;
         }
         TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
@@ -831,7 +843,7 @@ public class Engine {
         }
         if (lastCommandParsed.equals("help")) {
             System.out.println("Commands:");
-            System.out.println("textspeed [ARGS], textbuffer enable, textbuffer disable, defaultentry ai, defaultentry terminal");
+            System.out.println("textspeed [ARGS], textbuffer [ARGS], defaultentry [ARGS], displayfullfilepath [ARGS]");
         }
     }
 
