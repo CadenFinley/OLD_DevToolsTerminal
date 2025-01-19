@@ -405,7 +405,14 @@ public class Engine {
                 return;
             }
             if (lastCommandParsed.equals("extract")) {
-                extractCodeSnippet(fileName);
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    extractCodeSnippet(fileName, "extracted_code");
+                    fileName.delete();
+                    return;
+                }
+                extractCodeSnippet(fileName, lastCommandParsed);
+                fileName.delete();
                 return;
             }
             System.out.println("Unknown command. No given ARGS. Try 'help'");
@@ -1019,7 +1026,7 @@ public class Engine {
      *
      * @param logFile The log file containing the chat
      */
-    private static File extractCodeSnippet(File logFile) {
+    private static File extractCodeSnippet(File logFile, String fileName) {
         try {
             List<String> lines = Files.readAllLines(logFile.toPath());
             StringBuilder codeSnippet = new StringBuilder();
@@ -1039,7 +1046,7 @@ public class Engine {
                 }
             }
             if (fileExtension != null && !codeSnippet.toString().isEmpty()) {
-                File outputFile = new File("extracted_code." + fileExtension);
+                File outputFile = new File(fileName + "." + fileExtension);
                 try (FileWriter writer = new FileWriter(outputFile)) {
                     writer.write(codeSnippet.toString());
                     System.out.println("Code snippet extracted and saved to " + outputFile.getAbsolutePath());
