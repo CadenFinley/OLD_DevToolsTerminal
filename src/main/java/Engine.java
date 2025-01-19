@@ -21,32 +21,30 @@ import org.json.JSONObject;
  */
 public class Engine {
 
-    private static final Console console = System.console();
-    public static boolean TESTING = false;
-    private static boolean startCommandsOn = true;
-    private static boolean incognitoChatMode = false;
-    private static boolean usingChatCache = true;
-    private static List<String> savedChatCache = new ArrayList<>();
-
-    private static OpenAIPromptEngine openAIPromptEngine;
-    private static TerminalPassthrough terminal;
-
-    private static Queue<String> commandsQueue = null;
-    private static String lastCommandParsed = null;
+    private static boolean TESTING = false;
     private static boolean defaultTextEntryOnAI = false;
     private static boolean textBuffer = true;
     private static boolean shotcutsEnabled = true;
+    private static boolean startCommandsOn = true;
+    private static boolean incognitoChatMode = false;
+    private static boolean usingChatCache = true;
 
+    private static final Console console = System.console();
+    private static OpenAIPromptEngine openAIPromptEngine;
+    private static TerminalPassthrough terminal;
+
+    private static String lastCommandParsed = null;
     private static final String GREEN_COLOR_BOLD = "\033[1;32m";
     private static final String RESET_COLOR = "\033[0m";
     private static final String RED_COLOR_BOLD = "\033[1;31m";
     private static final String MAIN_MENU_HEADER = GREEN_COLOR_BOLD + "AI Menu: " + RESET_COLOR;
     private static final String AI_CHAT_HEADER = GREEN_COLOR_BOLD + "AI Chat: " + RESET_COLOR;
 
-    private static final File USER_DATA = new File(".USER_DATA.json");
-
+    private static List<String> savedChatCache = new ArrayList<>();
+    private static Queue<String> commandsQueue = null;
     private static List<String> startupCommands;
     private static Map<String, String> shortcuts;
+    private static final File USER_DATA = new File(".USER_DATA.json");
 
     /**
      * Main method to start the application.
@@ -56,7 +54,7 @@ public class Engine {
     public static void main(String[] args) {
         System.out.println(TextEngine.setWidth());
         TextEngine.clearScreen();
-        TextEngine.printNoDelay("DevToolsTerminal - Caden Finley 2025 (c)", false, true);
+        TextEngine.printNoDelay("DevToolsTerminal - Caden Finley (c) 2025", false, true);
         TextEngine.printWithDelays("Loading...", false, true);
         startupCommands = new ArrayList<>();
         shortcuts = new HashMap<>();

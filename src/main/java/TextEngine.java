@@ -82,7 +82,7 @@ public abstract class TextEngine {
     public static void printWithDelays(String data, boolean inputBuffer, boolean newLine) {
         boolean needToBreak = false;
         // Use inputBuffer if you are accepting input after the text is printed
-        if (speedSetting.equals("nodelay") || Engine.TESTING) {
+        if (speedSetting.equals("nodelay")) {
             printNoDelay(data, inputBuffer, newLine);
             return;
         }
@@ -243,9 +243,6 @@ public abstract class TextEngine {
      * Adds a pause and waits for the user to press Enter to continue.
      */
     public static void enterToNext() { //adds a pause and waits for enter
-        if (Engine.TESTING) {
-            return;
-        }
         printNoDelay(yellowColor + "Press Enter to continue" + resetColor, false, false);
         console.readLine();
     }
