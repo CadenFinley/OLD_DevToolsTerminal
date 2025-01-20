@@ -204,7 +204,7 @@ public class TimeEngine {
      * @return the current timestamp
      */
     public static String timeStamp() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
         Date resultDate = new Date(System.currentTimeMillis());
         return sdf.format(resultDate);
     }

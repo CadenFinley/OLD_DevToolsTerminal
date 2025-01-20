@@ -23,7 +23,7 @@ public class Engine {
 
     private static boolean TESTING = false;
     private static boolean defaultTextEntryOnAI = false;
-    private static boolean textBuffer = true;
+    private static boolean textBuffer = false;
     private static boolean shotcutsEnabled = true;
     private static boolean startCommandsOn = true;
     private static boolean incognitoChatMode = false;
@@ -62,6 +62,9 @@ public class Engine {
         TextEngine.printNoDelay("Created 2025 @ " + PURPLE_COLOR_BOLD + "Abilene Chrsitian University" + RESET_COLOR, false, true);
         TextEngine.printWithDelays("Loading...", false, true);
         applicationDirectory = System.getProperty("user.dir");
+        if (System.getProperty("os.name").toLowerCase().contains("win")) {
+            applicationDirectory = applicationDirectory.substring(applicationDirectory.indexOf(":") + 1);
+        }
         startupCommands = new ArrayList<>();
         shortcuts = new HashMap<>();
         terminal = new TerminalPassthrough();
@@ -365,13 +368,15 @@ public class Engine {
                 exit();
             case "help" -> {
                 TextEngine.printWithDelays("Commands:", false, true);
+                TextEngine.printWithDelays(".ss [ARGS]", false, true);
+                TextEngine.printWithDelays(".approot", false, true);
                 TextEngine.printWithDelays(".ai o[ARGS]", false, true);
                 TextEngine.printWithDelays(".terminal o[ARGS]", false, true);
                 TextEngine.printWithDelays(".user", false, true);
                 TextEngine.printWithDelays(".exit", false, true);
                 TextEngine.printWithDelays(".clear or clear", false, true);
                 TextEngine.printWithDelays(".help", false, true);
-                TextEngine.printWithDelays("aihelp", false, true);
+                TextEngine.printWithDelays(".aihelp", false, true);
             }
             default ->
                 TextEngine.printWithDelays("Unknown command. Please try again. Type 'help' or '.help' if you need help", false, true);
@@ -428,7 +433,14 @@ public class Engine {
                 return;
             }
             if (lastCommandParsed.equals("extract")) {
-                extractCodeSnippet(fileName);
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    extractCodeSnippet(fileName, "extracted_code");
+                    fileName.delete();
+                    return;
+                }
+                extractCodeSnippet(fileName, lastCommandParsed);
+                fileName.delete();
                 return;
             }
             System.out.println("Unknown command. No given ARGS. Try 'help'");
@@ -1042,7 +1054,7 @@ public class Engine {
      *
      * @param logFile The log file containing the chat
      */
-    private static File extractCodeSnippet(File logFile) {
+    private static File extractCodeSnippet(File logFile, String fileName) {
         try {
             List<String> lines = Files.readAllLines(logFile.toPath());
             StringBuilder codeSnippet = new StringBuilder();
@@ -1062,7 +1074,7 @@ public class Engine {
                 }
             }
             if (fileExtension != null && !codeSnippet.toString().isEmpty()) {
-                File outputFile = new File("extracted_code." + fileExtension);
+                File outputFile = new File(fileName + "." + fileExtension);
                 try (FileWriter writer = new FileWriter(outputFile)) {
                     writer.write(codeSnippet.toString());
                     System.out.println("Code snippet extracted and saved to " + outputFile.getAbsolutePath());
