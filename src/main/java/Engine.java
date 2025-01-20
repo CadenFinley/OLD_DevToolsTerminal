@@ -382,7 +382,6 @@ public class Engine {
             showChatHistory();
             return;
         }
-        //add a way to extract code snippets from recieved chat and execute them
         if (lastCommandParsed.equals("log")) {
             String lastChatSent = openAIPromptEngine.getLastPromptUsed();
             String lastChatRecieved = openAIPromptEngine.getLastResponseReceived();
