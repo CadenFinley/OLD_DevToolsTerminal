@@ -133,6 +133,9 @@ public class Engine {
         }
     }
 
+    /**
+     * Creates a new user history file if it does not exist.
+     */
     private static void createNewUSER_HISTORYfile() {
         try {
             System.out.println("User history file not found. Creating new file...");
@@ -184,6 +187,9 @@ public class Engine {
         }
     }
 
+    /**
+     * Changes the directory to the application directory.
+     */
     private static void goToApplicationDirectory() {
         commandProcesser("terminal cd /");
         commandProcesser("terminal cd " + applicationDirectory);
@@ -923,19 +929,6 @@ public class Engine {
             TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
             return;
         }
-        if (lastCommandParsed.equals("textspeed")) {
-            getNextCommand();
-            if (lastCommandParsed == null) {
-                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
-                return;
-            }
-            TextEngine.setSpeedSetting(lastCommandParsed);
-            System.out.println("Text speed set to " + TextEngine.getSpeedSetting());
-            getNextCommand();
-            if (lastCommandParsed == null) {
-                return;
-            }
-        }
         if (lastCommandParsed.equals("textbuffer")) {
             getNextCommand();
             if (lastCommandParsed == null) {
@@ -1003,7 +996,7 @@ public class Engine {
         }
         if (lastCommandParsed.equals("help")) {
             System.out.println("Commands:");
-            System.out.println("textspeed [ARGS], textbuffer [ARGS], defaultentry [ARGS], displayfullfilepath [ARGS]");
+            System.out.println("textbuffer [ARGS], defaultentry [ARGS], displayfullfilepath [ARGS]");
         }
     }
 
@@ -1087,6 +1080,8 @@ public class Engine {
      * file with the correct file extension.
      *
      * @param logFile The log file containing the chat
+     * @param fileName The name of the file to save the code snippet to
+     * @return The file containing the extracted code snippet
      */
     private static File extractCodeSnippet(File logFile, String fileName) {
         try {
@@ -1123,6 +1118,12 @@ public class Engine {
         return null;
     }
 
+    /**
+     * Returns the file extension for a given programming language.
+     *
+     * @param language The programming language
+     * @return The file extension for the language
+     */
     private static String getFileExtensionForLanguage(String language) {
         return switch (language.toLowerCase()) {
             case "java" ->

@@ -129,6 +129,12 @@ public class TerminalPassthrough {
         terminalCacheTerminalOutput.clear();
     }
 
+    /**
+     * Returns the most recent user input from the terminal cache.
+     *
+     * @return the most recent user input, or an empty string if the cache is
+     * empty
+     */
     public String returnMostRecentUserInput() {
         if (terminalCacheUserInput.size() >= 1) {
             return terminalCacheUserInput.get(terminalCacheUserInput.size() - 1);
@@ -136,6 +142,12 @@ public class TerminalPassthrough {
         return "";
     }
 
+    /**
+     * Returns the most recent terminal output from the terminal cache.
+     *
+     * @return the most recent terminal output, or an empty string if the cache
+     * is empty
+     */
     public String returnMostRecentTerminalOutput() {
         if (terminalCacheTerminalOutput.size() >= 1) {
             return terminalCacheTerminalOutput.get(terminalCacheTerminalOutput.size() - 1);

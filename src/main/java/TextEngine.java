@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class TextEngine {
 
-    private static String speedSetting = "normal";
+    private static String speedSetting = "nodelay"; // Default speed setting
     public final static Console console = System.console();
     public static String yellowColor = "\033[1;33m";
     public static String resetColor = "\033[0m";
