@@ -339,7 +339,7 @@ public class Engine {
                 exit();
             case "help" -> {
                 TextEngine.printWithDelays("Commands:", false, true);
-                TextEngine.printWithDelays(".ss [ARGS]", true, TESTING);
+                TextEngine.printWithDelays(".ss [ARGS]", false, true);
                 TextEngine.printWithDelays(".approot", false, true);
                 TextEngine.printWithDelays(".ai o[ARGS]", false, true);
                 TextEngine.printWithDelays(".terminal o[ARGS]", false, true);
