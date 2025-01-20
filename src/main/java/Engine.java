@@ -23,7 +23,7 @@ public class Engine {
 
     private static boolean TESTING = false;
     private static boolean defaultTextEntryOnAI = false;
-    private static boolean textBuffer = true;
+    private static boolean textBuffer = false;
     private static boolean shotcutsEnabled = true;
     private static boolean startCommandsOn = true;
     private static boolean incognitoChatMode = false;
