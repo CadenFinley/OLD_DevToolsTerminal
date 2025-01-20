@@ -1,12 +1,15 @@
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.Map;
 
-import static org.junit.Assert.*;
+import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
 
 public class TerminalPassthroughTest {
 
@@ -50,21 +53,6 @@ public class TerminalPassthroughTest {
     public void testPrintCurrentTerminalPosition() {
         terminalPassthrough.printCurrentTerminalPosition();
         assertTrue(outContent.toString().contains(terminalPassthrough.getTerminalName()));
-    }
-
-    @Test
-    public void testGetTerminalCache() {
-        Map<String, String> cache = terminalPassthrough.getTerminalCache();
-        assertNotNull(cache);
-        assertTrue(cache.isEmpty());
-    }
-
-    @Test
-    public void testClearTerminalCache() {
-        terminalPassthrough.getTerminalCache().put("testKey", "testValue");
-        assertFalse(terminalPassthrough.getTerminalCache().isEmpty());
-        terminalPassthrough.clearTerminalCache();
-        assertTrue(terminalPassthrough.getTerminalCache().isEmpty());
     }
 
     @Test

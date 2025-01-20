@@ -102,20 +102,21 @@ public class OpenAIPromptEngine {
      * @param usingChatCache whether to use the chat cache
      * @return the response from the OpenAI API
      */
-    private String chatGPT(String message, boolean usingChatCache) {
+    private String chatGPT(String passedMessage, boolean usingChatCache) {
+
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<String> future = executor.submit(() -> {
             String url = "https://api.openai.com/v1/chat/completions";
             String apiKey = USER_API_KEY; // API key goes here
-            String model = "gpt-3.5-turbo";
+            String model = "gpt-4o";
             String sentMessage;
             if (usingChatCache && !lastPromptUsed.equals("")) {
-                sentMessage = "These are the previous messages from this conversation: '" + chatCache.toString().trim() + "' This is the users response based on the previous conversation: '" + message + "'";
+                sentMessage = "These are the previous messages from this conversation: '" + chatCache.toString().trim() + "' This is the users response based on the previous conversation: '" + passedMessage + "'";
             } else {
-                sentMessage = message;
+                sentMessage = passedMessage;
             }
+            sentMessage = filterMessage(sentMessage);
             lastPromptUsed = sentMessage;
-            //System.out.println("OpenAI: " + System.currentTimeMillis() + " Sending message to OpenAI API: " + sentMessage);
             StringBuilder response = new StringBuilder();
             try {
                 URL obj = new URL(url);
@@ -141,7 +142,7 @@ public class OpenAIPromptEngine {
                 lastResponseReceived = extractContentFromJSON(response.toString());
                 return lastResponseReceived;
             } catch (IOException e) {
-                System.out.println("OpenAI API connection failed. Please check your internet connection and try again later. " + System.currentTimeMillis() + " " + e.getMessage());
+                System.out.println(System.currentTimeMillis() + " " + e.getMessage());
                 lastResponseReceived = response.toString();
                 return null;
             }
@@ -158,6 +159,16 @@ public class OpenAIPromptEngine {
         } finally {
             executor.shutdown();
         }
+    }
+
+    /**
+     * Filters the message to remove unwanted characters.
+     *
+     * @param message the message to be filtered
+     * @return the filtered message
+     */
+    private static String filterMessage(String message) {
+        return message.replaceAll("[^a-zA-Z0-9\\s\\-_.~]", "").replace("\n", " ");
     }
 
     /**

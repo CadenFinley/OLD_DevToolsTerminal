@@ -34,12 +34,12 @@ public class Engine {
     private static TerminalPassthrough terminal;
 
     private static String lastCommandParsed = null;
+    private static String applicationDirectory;
     private static final String GREEN_COLOR_BOLD = "\033[1;32m";
     private static final String RESET_COLOR = "\033[0m";
     private static final String RED_COLOR_BOLD = "\033[1;31m";
     private static final String MAIN_MENU_HEADER = GREEN_COLOR_BOLD + "AI Menu: " + RESET_COLOR;
     private static final String AI_CHAT_HEADER = GREEN_COLOR_BOLD + "AI Chat: " + RESET_COLOR;
-    private static String applicationDirectory;
 
     private static List<String> savedChatCache = new ArrayList<>();
     private static Queue<String> commandsQueue = null;
@@ -311,7 +311,7 @@ public class Engine {
             }
             case "aihelp" -> {
                 if (!defaultTextEntryOnAI && openAIPromptEngine.getAPIKey() != null && !openAIPromptEngine.getAPIKey().isEmpty()) {
-                    String message = ("I am encountering these errors in the " + terminal.getTerminalName() + " and would like some help solving these issues: " + terminal.getTerminalCache());
+                    String message = ("I am encountering these errors in the " + terminal.getTerminalName() + " and would like some help solving these issues. User input " + terminal.returnMostRecentUserInput() + " Terminal output " + terminal.returnMostRecentTerminalOutput());
                     if (TESTING) {
                         System.out.println(message);
                     }
@@ -377,7 +377,6 @@ public class Engine {
             showChatHistory();
             return;
         }
-        //add a way to extract code snippets from recieved chat and execute them
         if (lastCommandParsed.equals("log")) {
             String lastChatSent = openAIPromptEngine.getLastPromptUsed();
             String lastChatRecieved = openAIPromptEngine.getLastResponseReceived();
@@ -462,7 +461,7 @@ public class Engine {
         }
         if (lastCommandParsed.equals("help")) {
             System.out.println("Commands: ");
-            System.out.println("log: extract");
+            System.out.println("log: extract o[ARGS]");
             System.out.println("apikey: set [ARGS], get");
             System.out.println("chat: [ARGS]");
             System.out.println("get: [ARGS]");

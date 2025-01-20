@@ -80,6 +80,9 @@ public abstract class TextEngine {
      * @param newLine whether to print a new line at the end
      */
     public static void printWithDelays(String data, boolean inputBuffer, boolean newLine) {
+        if (data == null) {
+            return;
+        }
         boolean needToBreak = false;
         // Use inputBuffer if you are accepting input after the text is printed
         if (speedSetting.equals("nodelay")) {
@@ -164,6 +167,9 @@ public abstract class TextEngine {
      * @param newLine whether to print a new line at the end
      */
     public static void printNoDelay(String data, boolean inputBuffer, boolean newLine) { //use inputBuffer is you are accepting input after the text is printed
+        if (data == null) {
+            return;
+        }
         boolean needToBreak = false;
         if (inputBuffer) {
             data = data + yellowColor + " (press enter to type)" + resetColor;

@@ -5,9 +5,8 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,7 +22,8 @@ public class TerminalPassthrough {
     private final String YELLOW_COLOR_BOLD = "\033[1;33m";
     private final String RESET_COLOR = "\033[0m";
     private String currentDirectory;
-    private final Map<String, String> terminalCache;
+    private final List<String> terminalCacheUserInput;
+    private final List<String> terminalCacheTerminalOutput;
     private boolean displayWholePath = false;
 
     /**
@@ -32,7 +32,8 @@ public class TerminalPassthrough {
      */
     public TerminalPassthrough() {
         currentDirectory = System.getProperty("user.dir");
-        terminalCache = new HashMap<>();
+        terminalCacheUserInput = new ArrayList<>();
+        terminalCacheTerminalOutput = new ArrayList<>();
     }
 
     /**
@@ -76,10 +77,20 @@ public class TerminalPassthrough {
         return displayWholePath;
     }
 
+    /**
+     * Gets the current file path.
+     *
+     * @return the current file path
+     */
     private String getCurrentFilePath() {
         return currentDirectory;
     }
 
+    /**
+     * Gets the current file name.
+     *
+     * @return the current file name
+     */
     private String getCurrentFileName() {
         Path fileNamePath = Paths.get(getCurrentFilePath()).getFileName();
         return (fileNamePath != null && !fileNamePath.toString().equals(" ") && !fileNamePath.toString().strip().equals("")) ? fileNamePath.toString() : "/";
@@ -97,15 +108,39 @@ public class TerminalPassthrough {
      *
      * @return the terminal cache
      */
-    public Map<String, String> getTerminalCache() {
-        return terminalCache;
+    public List<String> getTerminalCacheUserInput() {
+        return terminalCacheUserInput;
+    }
+
+    /**
+     * Gets the terminal cache.
+     *
+     * @return the terminal cache
+     */
+    public List<String> getTerminalCacheTerminalOutput() {
+        return terminalCacheTerminalOutput;
     }
 
     /**
      * Clears the terminal cache.
      */
     public void clearTerminalCache() {
-        terminalCache.clear();
+        terminalCacheUserInput.clear();
+        terminalCacheTerminalOutput.clear();
+    }
+
+    public String returnMostRecentUserInput() {
+        if (terminalCacheUserInput.size() >= 1) {
+            return terminalCacheUserInput.get(terminalCacheUserInput.size() - 1);
+        }
+        return "";
+    }
+
+    public String returnMostRecentTerminalOutput() {
+        if (terminalCacheTerminalOutput.size() >= 1) {
+            return terminalCacheTerminalOutput.get(terminalCacheTerminalOutput.size() - 1);
+        }
+        return "";
     }
 
     /**
@@ -168,8 +203,8 @@ public class TerminalPassthrough {
      * @return the thread executing the command
      */
     public Thread executeCommand(String command, boolean feedback) {
+        terminalCacheUserInput.add(command);
         Thread commandThread = new Thread(() -> {
-            boolean executionPass = true;
             try {
                 if (command.startsWith("cd ")) {
                     String newDir = command.substring(3).trim();
@@ -194,27 +229,22 @@ public class TerminalPassthrough {
                     processBuilder.directory(new java.io.File(currentDirectory));
                     processBuilder.redirectInput(ProcessBuilder.Redirect.INHERIT);
                     processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-                    processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
+                    processBuilder.redirectError(ProcessBuilder.Redirect.PIPE); // Redirect error to pipe
                     Process process = processBuilder.start();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                    StringBuilder output = new StringBuilder();
                     String line;
-                    while ((line = reader.readLine()) != null) {
-                        output.append(line).append("\n");
+                    StringBuilder output = new StringBuilder();
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                        while ((line = reader.readLine()) != null) {
+                            System.err.println(line);
+                            output.append(line).append("\n");
+                        }
+                        terminalCacheTerminalOutput.add(output.toString());
                     }
                     process.waitFor();
-                    terminalCache.put("User input: ", command);
-                    terminalCache.put(getTerminalName() + " output: ", output.toString());
                 }
             } catch (IOException | InterruptedException e) {
                 if (feedback) {
                     System.out.println("Error executing command: '" + command + "' " + e.getMessage());
-                }
-                executionPass = false;
-            }
-            if (feedback) {
-                if (!executionPass) {
-                    System.out.println("Command failed to execute: '" + command + "'");
                 }
             }
         });
