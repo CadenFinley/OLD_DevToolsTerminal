@@ -28,6 +28,7 @@ public class Engine {
     private static boolean startCommandsOn = true;
     private static boolean incognitoChatMode = false;
     private static boolean usingChatCache = true;
+    private static boolean runningStartup = false;
 
     private static final Console console = System.console();
     private static OpenAIPromptEngine openAIPromptEngine;
@@ -46,6 +47,7 @@ public class Engine {
     private static List<String> startupCommands;
     private static Map<String, String> shortcuts;
     private static final File USER_DATA = new File(".USER_DATA.json");
+    private static final File USER_COMMAND_HISTORY = new File(".USER_COMMAND_HISTORY.txt");
 
     /**
      * Main method to start the application.
@@ -67,6 +69,13 @@ public class Engine {
         } else {
             loadUserData();
         }
+        if (!USER_COMMAND_HISTORY.exists()) {
+            try {
+                USER_COMMAND_HISTORY.createNewFile();
+            } catch (IOException e) {
+                TextEngine.printWithDelays("An error occurred while creating the user input history file.", false, true);
+            }
+        }
         if (openAIPromptEngine.getAPIKey() == null || openAIPromptEngine.getAPIKey().isEmpty()) {
             System.out.println("OpenAI API key not found.");
             defaultTextEntryOnAI = false;
@@ -81,10 +90,12 @@ public class Engine {
             }
         }
         if (startupCommands != null && !startupCommands.isEmpty() && startCommandsOn) {
+            runningStartup = true;
             System.out.println("Running startup commands...");
             for (String command : startupCommands) {
                 commandParser("." + command);
             }
+            runningStartup = false;
         }
         mainProcessLoop();
     }
@@ -235,6 +246,9 @@ public class Engine {
             TextEngine.printWithDelays("Invalid input. Please try again.", false, true);
             return;
         }
+        if (!runningStartup) {
+            addUserInputToHistory(command);
+        }
         if (command.equals("exit")) {
             exit();
         }
@@ -246,6 +260,20 @@ public class Engine {
             chatProcess(command);
         } else {
             sendTerminalCommand(command);
+        }
+    }
+
+    /**
+     * Adds user input to the user input history file.
+     *
+     * @param input The user input to add
+     */
+    private static void addUserInputToHistory(String input) {
+        try (FileWriter file = new FileWriter(USER_COMMAND_HISTORY, true)) {
+            file.write(TimeEngine.timeStamp() + " " + input + "\n");
+            file.flush();
+        } catch (IOException e) {
+            TextEngine.printWithDelays("An error occurred while writing to the user input history file.", false, true);
         }
     }
 
