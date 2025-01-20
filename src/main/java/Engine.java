@@ -39,6 +39,7 @@ public class Engine {
     private static final String GREEN_COLOR_BOLD = "\033[1;32m";
     private static final String RESET_COLOR = "\033[0m";
     private static final String RED_COLOR_BOLD = "\033[1;31m";
+    private static final String PURPLE_COLOR_BOLD = "\033[1;35m";
     private static final String MAIN_MENU_HEADER = GREEN_COLOR_BOLD + "AI Menu: " + RESET_COLOR;
     private static final String AI_CHAT_HEADER = GREEN_COLOR_BOLD + "AI Chat: " + RESET_COLOR;
 
@@ -58,6 +59,7 @@ public class Engine {
         System.out.println(TextEngine.setWidth());
         TextEngine.clearScreen();
         TextEngine.printNoDelay("DevToolsTerminal - Caden Finley (c) 2025", false, true);
+        TextEngine.printNoDelay("Created 2025 @ " + PURPLE_COLOR_BOLD + "Abilene Chrsitian University" + RESET_COLOR, false, true);
         TextEngine.printWithDelays("Loading...", false, true);
         applicationDirectory = System.getProperty("user.dir");
         startupCommands = new ArrayList<>();
@@ -137,7 +139,6 @@ public class Engine {
      */
     private static void loadUserData() {
         try {
-            System.out.println("Loading user data from: " + USER_DATA.getAbsolutePath());
             JSONObject userData = new JSONObject(Files.readString(USER_DATA.toPath()));
             openAIPromptEngine.setAPIKey(userData.getString("OpenAI_API_KEY"));
             savedChatCache = new ArrayList<>();

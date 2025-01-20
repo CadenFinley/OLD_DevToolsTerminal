@@ -11,6 +11,7 @@ buildNumber.properties
 *.class
 .vscode
 .USER_DATA.json
+.USER_COMMAND_HISTORY.txt
 
 # https://github.com/takari/maven-wrapper#usage-without-binary-jar
 .mvn/wrapper/maven-wrapper.jar
