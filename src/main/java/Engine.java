@@ -75,11 +75,7 @@ public class Engine {
             loadUserData();
         }
         if (!USER_COMMAND_HISTORY.exists()) {
-            try {
-                USER_COMMAND_HISTORY.createNewFile();
-            } catch (IOException e) {
-                TextEngine.printWithDelays("An error occurred while creating the user input history file.", false, true);
-            }
+            createNewUSER_HISTORYfile();
         }
         if (openAIPromptEngine.getAPIKey() == null || openAIPromptEngine.getAPIKey().isEmpty()) {
             System.out.println("OpenAI API key not found.");
@@ -134,6 +130,15 @@ public class Engine {
             writeUserData();
         } catch (IOException e) {
             TextEngine.printWithDelays("An error occurred while creating the user data file.", false, true);
+        }
+    }
+
+    private static void createNewUSER_HISTORYfile() {
+        try {
+            System.out.println("User history file not found. Creating new file...");
+            USER_COMMAND_HISTORY.createNewFile();
+        } catch (IOException e) {
+            TextEngine.printWithDelays("An error occurred while creating the user history file.", false, true);
         }
     }
 
@@ -569,14 +574,43 @@ public class Engine {
                 return;
             }
             if (lastCommandParsed.equals("get")) {
-                System.out.println(readAndReturnUserDataFile());
-                return;
+                getNextCommand();
+                if (lastCommandParsed == null) {
+                    TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+                    return;
+                }
+                if (lastCommandParsed.equals("userdata")) {
+                    System.out.println(readAndReturnUserDataFile());
+                    return;
+                }
+                if (lastCommandParsed.equals("userhistory")) {
+                    try {
+                        System.out.println(Files.readString(USER_COMMAND_HISTORY.toPath()));
+                        return;
+                    } catch (IOException e) {
+                        TextEngine.printWithDelays("An error occurred while reading the user history file.", false, true);
+                        return;
+                    }
+                }
+                if (lastCommandParsed.equals("all")) {
+                    System.out.println(readAndReturnUserDataFile());
+                    try {
+                        System.out.println(Files.readString(USER_COMMAND_HISTORY.toPath()));
+                    } catch (IOException e) {
+                        TextEngine.printWithDelays("An error occurred while reading the user history file.", false, true);
+                        return;
+                    }
+                    return;
+                }
             }
             if (lastCommandParsed.equals("clear")) {
                 try {
                     Files.delete(USER_DATA.toPath());
                     createNewUSER_DATAFile();
                     TextEngine.printWithDelays("User data file cleared.", false, true);
+                    Files.delete(USER_COMMAND_HISTORY.toPath());
+                    createNewUSER_HISTORYfile();
+                    TextEngine.printWithDelays("User history file cleared.", false, true);
                     return;
                 } catch (IOException e) {
                     TextEngine.printWithDelays("An error occurred while clearing the user data file.", false, true);
@@ -593,7 +627,7 @@ public class Engine {
             System.out.println("text: textspeed [ARGS], textbuffer enable, textbuffer disable, defaultentry ai, defaultentry terminal");
             System.out.println("shortcut: clear, enable, disable, add [ARGS], remove [ARGS], list");
             System.out.println("testing: enable, disable");
-            System.out.println("data: get, clear");
+            System.out.println("data: get [ARGS], clear");
             return;
         }
         TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);

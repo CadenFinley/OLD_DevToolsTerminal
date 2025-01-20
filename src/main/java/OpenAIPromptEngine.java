@@ -108,7 +108,7 @@ public class OpenAIPromptEngine {
         Future<String> future = executor.submit(() -> {
             String url = "https://api.openai.com/v1/chat/completions";
             String apiKey = USER_API_KEY; // API key goes here
-            String model = "gpt-4o";
+            String model = "gpt-3.5-turbo";
             String sentMessage;
             if (usingChatCache && !lastPromptUsed.equals("")) {
                 sentMessage = "These are the previous messages from this conversation: '" + chatCache.toString().trim() + "' This is the users response based on the previous conversation: '" + passedMessage + "'";
