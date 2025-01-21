@@ -103,7 +103,6 @@ public class OpenAIPromptEngine {
      * @return the response from the OpenAI API
      */
     private String chatGPT(String passedMessage, boolean usingChatCache) {
-
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<String> future = executor.submit(() -> {
             String url = "https://api.openai.com/v1/chat/completions";
