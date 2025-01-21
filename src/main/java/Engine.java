@@ -94,7 +94,7 @@ public class Engine {
             runningStartup = true;
             System.out.println("Running startup commands...");
             for (String command : startupCommands) {
-                commandParser("." + command);
+                commandParser("!" + command);
             }
             runningStartup = false;
         }
@@ -264,10 +264,7 @@ public class Engine {
         if (!runningStartup) {
             addUserInputToHistory(command);
         }
-        if (command.equals("exit")) {
-            exit();
-        }
-        if (command.startsWith(".")) {
+        if (command.startsWith("!")) {
             commandProcesser(command.substring(1));
             return;
         }
@@ -379,15 +376,15 @@ public class Engine {
                 exit();
             case "help" -> {
                 TextEngine.printWithDelays("Commands:", false, true);
-                TextEngine.printWithDelays(".ss [ARGS]", false, true);
-                TextEngine.printWithDelays(".approot", false, true);
-                TextEngine.printWithDelays(".ai o[ARGS]", false, true);
-                TextEngine.printWithDelays(".terminal o[ARGS]", false, true);
-                TextEngine.printWithDelays(".user", false, true);
-                TextEngine.printWithDelays(".exit", false, true);
-                TextEngine.printWithDelays(".clear or clear", false, true);
-                TextEngine.printWithDelays(".help", false, true);
-                TextEngine.printWithDelays(".aihelp", false, true);
+                TextEngine.printWithDelays("!ss [ARGS]", false, true);
+                TextEngine.printWithDelays("!approot", false, true);
+                TextEngine.printWithDelays("!ai o[ARGS]", false, true);
+                TextEngine.printWithDelays("!terminal o[ARGS]", false, true);
+                TextEngine.printWithDelays("!user", false, true);
+                TextEngine.printWithDelays("!exit", false, true);
+                TextEngine.printWithDelays("!clear or clear", false, true);
+                TextEngine.printWithDelays("!help", false, true);
+                TextEngine.printWithDelays("!aihelp", false, true);
             }
             default ->
                 TextEngine.printWithDelays("Unknown command. Please try again. Type 'help' or '.help' if you need help", false, true);
