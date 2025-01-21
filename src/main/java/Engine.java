@@ -34,6 +34,7 @@ public class Engine {
     private static OpenAIPromptEngine openAIPromptEngine;
     private static TerminalPassthrough terminal;
 
+    private static char commandPrefix = '!';
     private static String lastCommandParsed = null;
     private static String applicationDirectory;
     private static final String GREEN_COLOR_BOLD = "\033[1;32m";
@@ -94,7 +95,7 @@ public class Engine {
             runningStartup = true;
             System.out.println("Running startup commands...");
             for (String command : startupCommands) {
-                commandParser("!" + command);
+                commandParser(commandPrefix + command);
             }
             runningStartup = false;
         }
@@ -162,6 +163,8 @@ public class Engine {
             shortcuts = new HashMap<>();
             userData.getJSONObject("Shortcuts").toMap().forEach((key, value) -> shortcuts.put(key, (String) value));
             textBuffer = userData.getBoolean("Text_Buffer");
+            defaultTextEntryOnAI = userData.getBoolean("Text_Entry");
+            commandPrefix = userData.getString("Command_Prefix").charAt(0);
         } catch (IOException e) {
             TextEngine.printWithDelays("An error occurred while reading the user data file.", false, true);
         }
@@ -180,6 +183,8 @@ public class Engine {
             userData.put("Shortcuts_Enabled", shotcutsEnabled);
             userData.put("Shortcuts", shortcuts);
             userData.put("Text_Buffer", textBuffer);
+            userData.put("Text_Entry", defaultTextEntryOnAI);
+            userData.put("Command_Prefix", commandPrefix);
             file.write(userData.toString());
             file.flush();
         } catch (IOException e) {
@@ -264,7 +269,7 @@ public class Engine {
         if (!runningStartup) {
             addUserInputToHistory(command);
         }
-        if (command.startsWith("!")) {
+        if (command.startsWith(commandPrefix + "")) {
             commandProcesser(command.substring(1));
             return;
         }
@@ -376,15 +381,16 @@ public class Engine {
                 exit();
             case "help" -> {
                 TextEngine.printWithDelays("Commands:", false, true);
-                TextEngine.printWithDelays("!ss [ARGS]", false, true);
-                TextEngine.printWithDelays("!approot", false, true);
-                TextEngine.printWithDelays("!ai o[ARGS]", false, true);
-                TextEngine.printWithDelays("!terminal o[ARGS]", false, true);
-                TextEngine.printWithDelays("!user", false, true);
-                TextEngine.printWithDelays("!exit", false, true);
-                TextEngine.printWithDelays("!clear or clear", false, true);
-                TextEngine.printWithDelays("!help", false, true);
-                TextEngine.printWithDelays("!aihelp", false, true);
+                TextEngine.printWithDelays("Command Prefix: " + commandPrefix, false, true);
+                TextEngine.printWithDelays("ss [ARGS]", false, true);
+                TextEngine.printWithDelays("approot", false, true);
+                TextEngine.printWithDelays("ai o[ARGS]", false, true);
+                TextEngine.printWithDelays("terminal o[ARGS]", false, true);
+                TextEngine.printWithDelays("user", false, true);
+                TextEngine.printWithDelays("exit", false, true);
+                TextEngine.printWithDelays("clear or clear", false, true);
+                TextEngine.printWithDelays("help", false, true);
+                TextEngine.printWithDelays("aihelp", false, true);
             }
             default ->
                 TextEngine.printWithDelays("Unknown command. Please try again. Type 'help' or '.help' if you need help", false, true);
@@ -990,6 +996,16 @@ public class Engine {
                     return;
                 }
             }
+        }
+        if (lastCommandParsed.equals("commandprefix")) {
+            getNextCommand();
+            if (lastCommandParsed == null) {
+                TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
+                return;
+            }
+            commandPrefix = lastCommandParsed.charAt(0);
+            TextEngine.printWithDelays("Command prefix set to " + commandPrefix, false, true);
+            return;
         }
         if (lastCommandParsed.equals("help")) {
             System.out.println("Commands:");
