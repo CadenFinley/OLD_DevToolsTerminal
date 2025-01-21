@@ -34,7 +34,7 @@ public class Engine {
     private static OpenAIPromptEngine openAIPromptEngine;
     private static TerminalPassthrough terminal;
 
-    private static char commandPrefix = '!';
+    private static String commandPrefix = "!";
     private static String lastCommandParsed = null;
     private static String applicationDirectory;
     private static final String GREEN_COLOR_BOLD = "\033[1;32m";
@@ -164,7 +164,7 @@ public class Engine {
             userData.getJSONObject("Shortcuts").toMap().forEach((key, value) -> shortcuts.put(key, (String) value));
             textBuffer = userData.getBoolean("Text_Buffer");
             defaultTextEntryOnAI = userData.getBoolean("Text_Entry");
-            commandPrefix = userData.getString("Command_Prefix").charAt(0);
+            commandPrefix = userData.getString("Command_Prefix");
         } catch (IOException e) {
             TextEngine.printWithDelays("An error occurred while reading the user data file.", false, true);
         }
@@ -1003,7 +1003,11 @@ public class Engine {
                 TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
                 return;
             }
-            commandPrefix = lastCommandParsed.charAt(0);
+            if (lastCommandParsed.length() > 1 || lastCommandParsed.isEmpty()) {
+                TextEngine.printWithDelays("Invalid command prefix. Must be a single character.", false, true);
+                return;
+            }
+            commandPrefix = lastCommandParsed;
             TextEngine.printWithDelays("Command prefix set to " + commandPrefix, false, true);
             return;
         }
