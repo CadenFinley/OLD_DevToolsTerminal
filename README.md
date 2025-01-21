@@ -17,6 +17,32 @@ DevToolsTerminal is an open-source universal terminal emulator designed for deve
 - Java Development Kit (JDK) 8 or higher
 - OpenAI API key (optional for AI features)
 
+### Downloading the Project
+
+You can download the project by cloning the repository using Git:
+
+```sh
+git clone https://github.com/yourusername/DevTools_CadenFinley.git
+```
+
+Alternatively, you can download the ZIP file from the GitHub repository and extract it to your desired location.
+
+### Building the Project
+
+To build the project, navigate to the project directory and use the following command:
+
+```sh
+mvn compile
+```
+
+### Running the Project
+
+After building the project, you can run it using the following command:
+
+```sh
+mvn exec:java
+```
+
 ## Usage
 
 ### Commands
@@ -54,6 +80,7 @@ DevToolsTerminal is an open-source universal terminal emulator designed for deve
   - `user text textbuffer disable`: Disable text buffer.
   - `user text defaultentry ai`: Set default text entry to AI.
   - `user text defaultentry terminal`: Set default text entry to terminal.
+  - `user text commandprefix [PREFIX]`: Set default text entry to terminal.
   - `user shortcut clear`: Clear all shortcuts.
   - `user shortcut enable`: Enable shortcuts.
   - `user shortcut disable`: Disable shortcuts.

@@ -632,10 +632,10 @@ public class Engine {
         if (lastCommandParsed.equals("help")) {
             System.out.println("Commands: ");
             System.out.println("startup: add [ARGS], remove [ARGS], clear, enable, disable, list, runall");
-            System.out.println("chat: history enable, history disable, history save, history clear, cache enable, cache disable, cache clear");
-            System.out.println("text: textspeed [ARGS], textbuffer enable, textbuffer disable, defaultentry ai, defaultentry terminal");
+            System.out.println("chat: history [ARGS], cache [ARGS]");
+            System.out.println("text: textspeed [ARGS], textbuffer [ARGS], defaultentry [ARGS], commandprefix [ARGS]");
             System.out.println("shortcut: clear, enable, disable, add [ARGS], remove [ARGS], list");
-            System.out.println("testing: enable, disable");
+            System.out.println("testing [ARGS]");
             System.out.println("data: get [ARGS], clear");
             return;
         }
