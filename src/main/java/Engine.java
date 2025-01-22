@@ -388,7 +388,7 @@ public class Engine {
                 TextEngine.printWithDelays("terminal o[ARGS]", false, true);
                 TextEngine.printWithDelays("user", false, true);
                 TextEngine.printWithDelays("exit", false, true);
-                TextEngine.printWithDelays("clear or clear", false, true);
+                TextEngine.printWithDelays("clear", false, true);
                 TextEngine.printWithDelays("help", false, true);
                 TextEngine.printWithDelays("aihelp", false, true);
             }
