@@ -59,8 +59,6 @@ public class Engine {
     public static void main(String[] args) {
         System.out.println(TextEngine.setWidth());
         TextEngine.clearScreen();
-        TextEngine.printNoDelay("DevToolsTerminal - Caden Finley (c) 2025", false, true);
-        TextEngine.printNoDelay("Created 2025 @ " + PURPLE_COLOR_BOLD + "Abilene Chrsitian University" + RESET_COLOR, false, true);
         TextEngine.printWithDelays("Loading...", false, true);
         applicationDirectory = System.getProperty("user.dir");
         if (System.getProperty("os.name").toLowerCase().contains("win")) {
@@ -99,6 +97,8 @@ public class Engine {
             }
             runningStartup = false;
         }
+        TextEngine.printNoDelay("DevToolsTerminal - Caden Finley (c) 2025", false, true);
+        TextEngine.printNoDelay("Created 2025 @ " + PURPLE_COLOR_BOLD + "Abilene Chrsitian University" + RESET_COLOR, false, true);
         mainProcessLoop();
     }
 
@@ -633,7 +633,7 @@ public class Engine {
             System.out.println("Commands: ");
             System.out.println("startup: add [ARGS], remove [ARGS], clear, enable, disable, list, runall");
             System.out.println("chat: history [ARGS], cache [ARGS]");
-            System.out.println("text: textspeed [ARGS], textbuffer [ARGS], defaultentry [ARGS], commandprefix [ARGS]");
+            System.out.println("text: textspeed [ARGS], textbuffer [ARGS], defaultentry [ARGS], commandprefix [ARGS], displayfullpath [ARGS]");
             System.out.println("shortcut: clear, enable, disable, add [ARGS], remove [ARGS], list");
             System.out.println("testing [ARGS]");
             System.out.println("data: get [ARGS], clear");
@@ -974,7 +974,7 @@ public class Engine {
             System.out.println("Unknown command. No given ARGS. Try 'help'");
             return;
         }
-        if (lastCommandParsed.equals("displayfullfilepath")) {
+        if (lastCommandParsed.equals("displayfullpath")) {
             getNextCommand();
             if (lastCommandParsed == null) {
                 TextEngine.printWithDelays("Unknown command. No given ARGS. Try 'help'", false, true);
