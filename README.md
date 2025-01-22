@@ -2,6 +2,8 @@
 
 DevToolsTerminal is an open-source universal terminal emulator designed for developers. It provides native support for OpenAI AI integration, powerful startup commands, and self-assignable command shortcuts.
 
+Development for this project has largely stopped and has been replaced with DevToolsTerminal-LITE: https://github.com/CadenFinley/DevToolsTerminal-LITE
+
 ## Features
 
 - **TimeEngine**: A timer and stopwatch utility.
